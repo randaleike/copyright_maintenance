@@ -1,0 +1,12 @@
+
+This is a test text file.  It's designed to test the text
+comment block parser. End of comment block 1
+
+Start of comment block 2.  Some random text to fill the
+block because it needs to be multiple lines.
+So we continue to babble incoheriently (please don't
+check my spelling).
+
+Now a single line block to test.
+
+

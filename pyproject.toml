@@ -1,0 +1,40 @@
+[project]
+name = "copyright_maintenance_grocsoftware"
+version = "0.4.3"
+
+authors = [
+  { name="Randal Eike", email="grocsoftware@gmail.com" },
+]
+maintainers = [
+  {name="Randal Eike", email="grocsoftware@gmail.com"},
+]
+
+description = "Copyright year maintenance tool for C/CPP/Python/Typescript files"
+readme = {file = "README.md", content-type = "text/markdown"}
+license = "MIT"
+keywords = ["copyright", "maintenance", "tool", "utilities", "C", "CPP", "Python", "Typescript", "files", "developer"]
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Repository = "https://github.com/randaleike/copyright_maintenance.git"
+Documentation = "https://github.com/randaleike/copyright_maintenance/wiki"
+Issues = "https://github.com/randaleike/copyright_maintenance/issues"
+Changelog = "https://github.com/randaleike/copyright_maintenance/master/CHANGELOG.md"
+
+[build-system]
+requires = ["setuptools >= 77.0.3"]
+build-backend = "setuptools.build_meta"
+
+[tool.pytest]
+minversion=7.0
+addopts=["-ra", "--cov", "--cov-fail_under=95"]
+testpaths=["tests"]
+
+[tool.coverage.paths]
+source = ["src/copyright_maintenance_grocsoftware"]
+
+[tool.coverage.report]
