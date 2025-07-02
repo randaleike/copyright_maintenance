@@ -1,0 +1,33 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,413,68,439"/>
+<area shape="rect" id="Node000001" href="$classcopyright__maintenance__grocsoftware_1_1comment__block_1_1CommentBlock.html" title="Identify the start and end of a comment block." alt="" coords="136,5,315,60"/>
+<area shape="poly" id="edge1_Node000000_Node000001" title=" " alt="" coords="38,399,47,324,62,226,84,132,98,95,114,70,134,53,138,57,118,73,103,98,89,134,67,227,52,325,43,400"/>
+<area shape="rect" id="Node000003" href="$classcopyright__maintenance__grocsoftware_1_1comment__block_1_1CommentParams.html" title="Comment marker definitions and static selection methods." alt="" coords="135,84,315,139"/>
+<area shape="poly" id="edge3_Node000000_Node000003" title=" " alt="" coords="35,399,39,347,50,281,73,210,91,178,114,148,134,133,137,137,118,152,96,180,78,213,55,282,44,348,41,400"/>
+<area shape="rect" id="Node000004" href="$classcopyright__maintenance__grocsoftware_1_1comment__block_1_1TextFileCommentBlock.html" title="Identify the start and end of a comment text block." alt="" coords="116,163,335,217"/>
+<area shape="poly" id="edge4_Node000000_Node000004" title=" " alt="" coords="39,399,47,361,60,315,82,268,114,227,128,215,132,220,118,231,87,271,65,317,52,362,44,400"/>
+<area shape="rect" id="Node000005" href="$classcopyright__maintenance__grocsoftware_1_1copyright__tools_1_1CopyrightFinder.html" title="Copyright message finder class." alt="" coords="136,241,315,296"/>
+<area shape="poly" id="edge5_Node000000_Node000005" title=" " alt="" coords="46,400,73,352,92,327,114,305,134,292,137,297,118,309,96,331,77,355,51,402"/>
+<area shape="rect" id="Node000006" href="$classcopyright__maintenance__grocsoftware_1_1copyright__tools_1_1CopyrightGenerator.html" title="Copyright message generator." alt="" coords="129,320,322,375"/>
+<area shape="poly" id="edge6_Node000000_Node000006" title=" " alt="" coords="72,405,115,384,143,372,145,377,117,388,74,409"/>
+<area shape="rect" id="Node000007" href="$classcopyright__maintenance__grocsoftware_1_1copyright__tools_1_1CopyrightParse.html" title="Copyright parsing and new message class." alt="" coords="136,399,315,453"/>
+<area shape="poly" id="edge7_Node000000_Node000007" title=" " alt="" coords="82,423,136,423,136,429,82,429"/>
+<area shape="rect" id="Node000011" href="$classcopyright__maintenance__grocsoftware_1_1copyright__tools_1_1CopyrightYearsList.html" title="Parse dates return data structure." alt="" coords="133,477,318,532"/>
+<area shape="poly" id="edge11_Node000000_Node000011" title=" " alt="" coords="74,443,117,464,145,475,143,480,115,468,72,447"/>
+<area shape="rect" id="Node000012" href="$classcopyright__maintenance__grocsoftware_1_1copyright__tools_1_1SubTextMarker.html" title="Regex trimmed substrng text and location information." alt="" coords="136,556,315,611"/>
+<area shape="poly" id="edge12_Node000000_Node000012" title=" " alt="" coords="51,450,77,497,96,521,118,543,137,555,134,560,114,547,92,525,73,500,46,452"/>
+<area shape="rect" id="Node000013" href="$classcopyright__maintenance__grocsoftware_1_1file__dates_1_1GetFileSystemYears.html" title="File system creation and last modification identification class." alt="" coords="122,635,329,689"/>
+<area shape="poly" id="edge13_Node000000_Node000013" title=" " alt="" coords="44,452,52,490,65,535,87,581,118,621,132,632,128,637,114,625,82,584,60,537,47,491,39,453"/>
+<area shape="rect" id="Node000014" href="$classcopyright__maintenance__grocsoftware_1_1file__dates_1_1GetFileYears.html" title="Get the file creation and last modification years for the file." alt="" coords="122,713,329,768"/>
+<area shape="poly" id="edge14_Node000000_Node000014" title=" " alt="" coords="41,452,44,504,55,570,78,639,96,672,118,700,131,711,127,715,114,704,91,674,73,642,50,571,39,505,35,453"/>
+<area shape="rect" id="Node000015" href="$classcopyright__maintenance__grocsoftware_1_1file__dates_1_1GetGitArchiveFileYears.html" title="File creation and last modification from git archive class." alt="" coords="122,792,329,847"/>
+<area shape="poly" id="edge15_Node000000_Node000015" title=" " alt="" coords="43,452,52,527,67,625,89,718,103,754,118,779,130,790,127,794,114,782,98,757,84,720,62,626,47,528,38,453"/>
+<area shape="rect" id="Node000002" href="$classcopyright__maintenance__grocsoftware_1_1update__copyright_1_1CopyrightCommentBlock.html" title="Identify the start and end of a comment blocks and determine if the copyright message is in the block..." alt="" coords="383,5,640,60"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="329,30,382,30,382,35,329,35"/>
+<area shape="rect" id="Node000008" href="$classcopyright__maintenance__grocsoftware_1_1copyright__tools_1_1CopyrightParseOrder1.html" title="Copyright order parsing and new message class." alt="" coords="408,359,615,413"/>
+<area shape="poly" id="edge8_Node000007_Node000008" title=" " alt="" coords="328,409,407,398,408,403,328,414"/>
+<area shape="rect" id="Node000010" href="$classcopyright__maintenance__grocsoftware_1_1copyright__tools_1_1CopyrightParseOrder2.html" title="Copyright order parsing and new message class." alt="" coords="408,437,615,492"/>
+<area shape="poly" id="edge10_Node000007_Node000010" title=" " alt="" coords="328,437,408,448,407,453,328,442"/>
+<area shape="rect" id="Node000009" href="$classcopyright__maintenance__grocsoftware_1_1copyright__tools_1_1CopyrightParseEnglish.html" title="English copyright parsing and new message class." alt="" coords="688,359,899,413"/>
+<area shape="poly" id="edge9_Node000008_Node000009" title=" " alt="" coords="628,383,688,383,688,389,628,389"/>
+</map>
