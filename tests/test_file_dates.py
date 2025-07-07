@@ -1,5 +1,5 @@
 """@package test_programmer_tools
-Unittest for programmer base tools utility
+Unittest for copyright maintenance utility
 """
 
 #==========================================================================
@@ -24,428 +24,467 @@ Unittest for programmer base tools utility
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #==========================================================================
 
-import io, contextlib
-from unittest.mock import patch, MagicMock
-
-from dir_init import TESTFILEPATH
-from dir_init import pathincsetup
-pathincsetup()
-testFileBaseDir = TESTFILEPATH
-
 import time
 import subprocess
+from unittest.mock import patch, MagicMock
+
+from dir_init import TEST_FILE_PATH
 
 from copyright_maintenance_grocsoftware.file_dates import DBG_MSG_NONE
 from copyright_maintenance_grocsoftware.file_dates import DBG_MSG_MINIMAL
-from copyright_maintenance_grocsoftware.file_dates import DBG_MSG_VERBOSE
-from copyright_maintenance_grocsoftware.file_dates import DBG_MSG_VERYVERBOSE
-from copyright_maintenance_grocsoftware.file_dates import DebugPrint
+from copyright_maintenance_grocsoftware.file_dates import debug_print
 
 from copyright_maintenance_grocsoftware.file_dates import GetFileSystemYears
 from copyright_maintenance_grocsoftware.file_dates import GetGitArchiveFileYears
 from copyright_maintenance_grocsoftware.file_dates import GetFileYears
 
-class TestClass01Misc:
+TEST_FILE_BASE_DIR = TEST_FILE_PATH
+
+# pylint: disable=protected-access
+
+def test001_debug_none(capsys):
     """!
-    @brief Test the DebugPrint function
+    Test debug_print(), current level < message level
     """
-    @classmethod
-    def teardown_class(cls):
-        """!
-        @brief On test teardown close the file
-        """
+    debug_print(DBG_MSG_MINIMAL, "test message")
+    assert capsys.readouterr().out == ""
 
-    def test001_debug_none(self):
-        """!
-        Test DebugPrint(), current level < message level
-        """
-        output = io.StringIO()
-        with contextlib.redirect_stdout(output):
-            DebugPrint(DBG_MSG_MINIMAL, "test message")
-            assert output.getvalue() == ""
-
-    def test002_debug_message_equal(self):
-        """!
-        Test DebugPrint(), current level == message level
-        """
-        output = io.StringIO()
-        with contextlib.redirect_stdout(output):
-            DebugPrint(DBG_MSG_NONE, "test message")
-            assert output.getvalue() == "Debug: test message\n"
-
-class TestClass02GetFilesystemDates:
+def test002_debug_message_equal(capsys):
     """!
-    @brief Test the file system get dates GetFileSystemYears class
+    Test debug_print(), current level == message level
     """
-    def test001_get_filesystem_years_local_time_overflow(self):
-        """!
-        Test _cvtTimestampToYear(), Overflow error
-        """
-        localTime = time.time()
-        output = io.StringIO()
-        with contextlib.redirect_stdout(output):
-            with patch('time.localtime', MagicMock(return_value = localTime)) as localTimeMock:
-                localTimeMock.side_effect = OverflowError(localTimeMock)
-                testObj = GetFileSystemYears("testfile")
-                year = testObj._cvtTimestampToYear(localTime)
-                assert year is None
-                assert output.getvalue() == "ERROR: Overflow error on conversion of time epoch.\n"
+    debug_print(DBG_MSG_NONE, "test message")
+    assert capsys.readouterr().out == "Debug: test message\n"
 
-    def test002_get_filesystem_years_local_time_os_error(self):
-        """!
-        Test _cvtTimestampToYear(), OS error
-        """
-        localTime = time.time()
-        output = io.StringIO()
-        with contextlib.redirect_stdout(output):
-            with patch('time.localtime', MagicMock(return_value = localTime)) as localTimeMock:
-                localTimeMock.side_effect = OSError(localTimeMock)
-                testObj = GetFileSystemYears("testfile")
-                year = testObj._cvtTimestampToYear(localTime)
-                assert year is None
-                assert output.getvalue() == "ERROR: OS converstion error of time epoch.\n"
-
-    def test003_get_filesystem_years_file_error_current_time(self):
-        """!
-        Test getFileYears(), Current time error
-        """
-        localTime = time.time()
-        output = io.StringIO()
-        with contextlib.redirect_stdout(output):
-            with patch('os.path.getctime', MagicMock(return_value = localTime)) as ctimeMock:
-                ctimeMock.side_effect = OSError(ctimeMock)
-                testObj = GetFileSystemYears("testfile")
-                createYear, modYear = testObj.getFileYears()
-                assert createYear is None
-                assert modYear is None
-                assert output.getvalue() == "ERROR: OS get file times error of time.\n"
-
-    def test004_get_filesystem_years_file_error_last_mod_time(self):
-        """!
-        Test getFileYears(), Last modification time error
-        """
-        localTime = time.time()
-        output = io.StringIO()
-        with contextlib.redirect_stdout(output):
-            with patch('os.path.getmtime', MagicMock(return_value = localTime)) as ctimeMock:
-                ctimeMock.side_effect = OSError(ctimeMock)
-                testObj = GetFileSystemYears("testfile")
-                createYear, modYear = testObj.getFileYears()
-                assert createYear is None
-                assert modYear is None
-                assert output.getvalue() == "ERROR: OS get file times error of time.\n"
-
-    def test005_get_filesystem_years_file_pass(self):
-        """!
-        Test getFileYears(), Good path
-        """
-        localTime = time.time()
-        expectedStr = time.strftime("%Y", time.localtime(localTime))
-        output = io.StringIO()
-        with contextlib.redirect_stdout(output):
-            with patch('os.path.getctime', MagicMock(return_value = localTime)), patch('os.path.getmtime', MagicMock(return_value = localTime)):
-                testObj = GetFileSystemYears("testfile")
-                createYear, modYear = testObj.getFileYears()
-                assert createYear == expectedStr
-                assert modYear == expectedStr
-                assert output.getvalue() == ""
-
-from copyright_maintenance_grocsoftware.file_dates import GetGitArchiveFileYears
-
-class TestClass03GetGitArchiveDates:
+def test003_get_filesystem_years_local_time_overflow(capsys):
     """!
-    @brief Test the file system get dates GetGitArchiveFileYears class
+    Test _cvt_timestamp_to_year(), Overflow error
     """
-    def test001_get_creation_year_pass(self):
-        """!
-        Test _getCreationYear(), Git cmd pass
-        """
-        retCodePass = subprocess.CompletedProcess("git", 0, "2022-01-01T12:00:00-06:00".encode('utf-8'), "")
-        with patch('subprocess.run', MagicMock(return_value = retCodePass)):
-            testObj = GetGitArchiveFileYears("testfile")
-            year = testObj._getCreationYear()
-            assert year == '2022'
+    mock_local_time = time.time()
+    with patch('time.localtime', MagicMock(return_value = mock_local_time)) as mock_time_patch:
+        mock_time_patch.side_effect = OverflowError(mock_time_patch)
+        test_obj = GetFileSystemYears("testfile")
+        year = test_obj._cvt_timestamp_to_year(mock_local_time)
+        assert year is None
+        assert capsys.readouterr().out == "ERROR: Overflow error on conversion of time epoch.\n"
 
-    def test002_get_creation_year_git_fail(self):
-        """!
-        Test _getCreationYear(), Git cmd failed
-        """
-        output = io.StringIO()
-        with contextlib.redirect_stdout(output):
-            retCodeFail = subprocess.CompletedProcess("git", 2, "git error msg".encode('utf-8'), "")
-            with patch('subprocess.run', MagicMock(return_value = retCodeFail)):
-                testObj = GetGitArchiveFileYears("testfile")
-                year = testObj._getCreationYear()
-                assert year is None
-                assert output.getvalue() == "ERROR: Git creation date failed: git error msg\n"
-
-    def test003_get_creation_year_system_failure(self):
-        """!
-        Test _getCreationYear(), Git subprocess failure
-        """
-        output = io.StringIO()
-        with contextlib.redirect_stdout(output):
-            retCodeError = subprocess.CompletedProcess("", 2, "git error msg", "")
-            with patch('subprocess.run', MagicMock(return_value = retCodeError)) as subproc:
-                subproc.side_effect = OSError
-                testObj = GetGitArchiveFileYears("testfile")
-                year = testObj._getCreationYear()
-                assert year is None
-                assert output.getvalue() == "ERROR: Git creation date command failed for file: testfile\n"
-
-    def test004_get_last_mod_year_pass(self):
-        """!
-        Test _getLastModificationYear(), Git cmd pass
-        """
-        retCodePass = subprocess.CompletedProcess("git", 0, "2023-01-01T12:00:00-06:00".encode('utf-8'), "")
-        with patch('subprocess.run', MagicMock(return_value = retCodePass)):
-            testObj = GetGitArchiveFileYears("testfile")
-            year = testObj._getLastModificationYear()
-            assert year == '2023'
-
-    def test005_get_last_mod_year_git_fail(self):
-        """!
-        Test _getLastModificationYear(), Git cmd failed
-        """
-        output = io.StringIO()
-        with contextlib.redirect_stdout(output):
-            retCodeFail = subprocess.CompletedProcess("git", 2, "git error msg".encode('utf-8'), "")
-            with patch('subprocess.run', MagicMock(return_value = retCodeFail)):
-                testObj = GetGitArchiveFileYears("testfile")
-                year = testObj._getLastModificationYear()
-                assert year is None
-                assert output.getvalue() == "ERROR: Git last modification date failed: git error msg\n"
-
-    def test006_get_last_mod_year_system_failure(self):
-        """!
-        Test _getLastModificationYear(), Git subprocess failure
-        """
-        output = io.StringIO()
-        with contextlib.redirect_stdout(output):
-            retCodeError = subprocess.CompletedProcess("", 2, "git error msg", "")
-            with patch('subprocess.run', MagicMock(return_value = retCodeError)) as subproc:
-                subproc.side_effect = OSError
-                testObj = GetGitArchiveFileYears("testfile")
-                year = testObj._getLastModificationYear()
-                assert year is None
-                assert output.getvalue() == "ERROR: Git last modification date command failed for file: testfile\n"
-
-    def test007_get_years_pass(self):
-        """!
-        Test getFileYears(), Git pass
-        """
-        def mockrun(args, *, stdin=None,
-                     input=None, stdout=None,
-                     stderr=None, capture_output=False,
-                     shell=False, cwd=None,
-                     timeout=None, check=False,
-                     encoding=None, errors=None,
-                     text=None, env=None, universal_newlines=None,
-                     **other_popen_kwargs):
-
-            gitCmd = ""
-            prefix = ""
-            for element in args:
-                gitCmd += prefix
-                gitCmd += element
-                prefix = " "
-            if args[2] == "-1":
-                return subprocess.CompletedProcess(gitCmd, 0, "2024-01-01T12:00:00-06:00".encode('utf-8'), "")
-            elif args[2] == "--diff-filter=A":
-                return subprocess.CompletedProcess(gitCmd, 0, "2023-01-01T12:00:00-06:00".encode('utf-8'), "")
-            else:
-                return subprocess.CompletedProcess(gitCmd, 2, "Git error".encode('utf-8'), "")
-
-        with patch('subprocess.run', MagicMock(side_effect = mockrun)):
-            testObj = GetGitArchiveFileYears("testfile")
-            startyear, modYear = testObj.getFileYears()
-            assert startyear == '2023'
-            assert modYear == '2024'
-
-    def test008_get_years_start_fail(self):
-        """!
-        Test getFileYears(), Git pass
-        """
-        def mockrun(args, *, stdin=None,
-                     input=None, stdout=None,
-                     stderr=None, capture_output=False,
-                     shell=False, cwd=None,
-                     timeout=None, check=False,
-                     encoding=None, errors=None,
-                     text=None, env=None, universal_newlines=None,
-                     **other_popen_kwargs):
-
-            gitCmd = ""
-            prefix = ""
-            for element in args:
-                gitCmd += prefix
-                gitCmd += element
-                prefix = " "
-            if args[2] == "-1":
-                return subprocess.CompletedProcess(gitCmd, 0, "2024-01-01T12:00:00-06:00".encode('utf-8'), "")
-            elif args[2] == "--diff-filter=A":
-                return subprocess.CompletedProcess(gitCmd, 2, "git error msg".encode('utf-8'), "")
-            else:
-                return subprocess.CompletedProcess(gitCmd, 4, "Git error".encode('utf-8'), "")
-
-        output = io.StringIO()
-        with contextlib.redirect_stdout(output):
-            with patch('subprocess.run', MagicMock(side_effect = mockrun)):
-                testObj = GetGitArchiveFileYears("testfile")
-                startyear, modYear = testObj.getFileYears()
-                assert startyear is None
-                assert modYear is None
-                assert output.getvalue() == "ERROR: Git creation date failed: git error msg\n"
-
-    def test009_get_years_las_mod_fail(self):
-        """!
-        Test getFileYears(), Git pass
-        """
-        def mockrun(args, *, stdin=None,
-                     input=None, stdout=None,
-                     stderr=None, capture_output=False,
-                     shell=False, cwd=None,
-                     timeout=None, check=False,
-                     encoding=None, errors=None,
-                     text=None, env=None, universal_newlines=None,
-                     **other_popen_kwargs):
-
-            gitCmd = ""
-            prefix = ""
-            for element in args:
-                gitCmd += prefix
-                gitCmd += element
-                prefix = " "
-            if args[2] == "-1":
-                return subprocess.CompletedProcess(gitCmd, 2, "git error msg".encode('utf-8'), "")
-            elif args[2] == "--diff-filter=A":
-                return subprocess.CompletedProcess(gitCmd, 0, "2024-01-01T12:00:00-06:00".encode('utf-8'), "")
-            else:
-                return subprocess.CompletedProcess(gitCmd, 4, "Git error".encode('utf-8'), "")
-
-        output = io.StringIO()
-        with contextlib.redirect_stdout(output):
-            with patch('subprocess.run', MagicMock(side_effect = mockrun)):
-                testObj = GetGitArchiveFileYears("testfile")
-                startyear, modYear = testObj.getFileYears()
-                assert startyear is None
-                assert modYear is None
-                assert output.getvalue() == "ERROR: Git last modification date failed: git error msg\n"
-
-class TestClass04GetYears:
+def test004_get_filesystem_years_local_time_os_error(capsys):
     """!
-    @brief Test marco class
+    Test _cvt_timestamp_to_year(), OS error
     """
-    def test001_get_year_git(self):
-        def existReturn(filename):
-            if filename == "testfile":
-                return True
-            elif filename == ".git":
-                return True
-            else:
-                return False
+    mock_local_time = time.time()
+    with patch('time.localtime', MagicMock(return_value = mock_local_time)) as mock_time_patch:
+        mock_time_patch.side_effect = OSError(mock_time_patch)
+        test_obj = GetFileSystemYears("testfile")
+        year = test_obj._cvt_timestamp_to_year(mock_local_time)
+        assert year is None
+        assert capsys.readouterr().out == "ERROR: OS converstion error of time epoch.\n"
 
-        def mockrun(args, *, stdin=None,
-                     input=None, stdout=None,
-                     stderr=None, capture_output=False,
-                     shell=False, cwd=None,
-                     timeout=None, check=False,
-                     encoding=None, errors=None,
-                     text=None, env=None, universal_newlines=None,
-                     **other_popen_kwargs):
+def test005_get_filesystem_years_file_error_current_time(capsys):
+    """!
+    Test get_file_years(), Current time error
+    """
+    mock_local_time = time.time()
+    with patch('os.path.getctime', MagicMock(return_value = mock_local_time)) as ctime_mock:
+        ctime_mock.side_effect = OSError(ctime_mock)
+        test_obj = GetFileSystemYears("testfile")
+        create_year, modify_year = test_obj.get_file_years()
+        assert create_year is None
+        assert modify_year is None
+        assert capsys.readouterr().out == "ERROR: OS get file times error of time.\n"
 
-            gitCmd = ""
-            prefix = ""
-            for element in args:
-                gitCmd += prefix
-                gitCmd += element
-                prefix = " "
-            if args[2] == "-1":
-                return subprocess.CompletedProcess(gitCmd, 0, "2025-01-01T12:00:00-06:00".encode('utf-8'), "")
-            elif args[2] == "--diff-filter=A":
-                return subprocess.CompletedProcess(gitCmd, 0, "2022-01-01T12:00:00-06:00".encode('utf-8'), "")
-            else:
-                return subprocess.CompletedProcess(gitCmd, 4, "Git error".encode('utf-8'), "")
+def test006_get_filesystem_years_file_error_last_mod_time(capsys):
+    """!
+    Test get_file_years(), Last modification time error
+    """
+    mock_local_time = time.time()
+    with patch('os.path.getmtime', MagicMock(return_value = mock_local_time)) as ctime_mock:
+        ctime_mock.side_effect = OSError(ctime_mock)
+        test_obj = GetFileSystemYears("testfile")
+        create_year, modify_year = test_obj.get_file_years()
+        assert create_year is None
+        assert modify_year is None
+        assert capsys.readouterr().out == "ERROR: OS get file times error of time.\n"
 
-        with patch('os.path.exists', MagicMock(side_effect = existReturn)), patch('os.path.isfile', MagicMock(return_value = True)), patch('os.path.isdir', MagicMock(return_value = True)):
-            with patch('subprocess.run', MagicMock(side_effect = mockrun)):
-                testObj = GetFileYears("testfile")
-                startyear, modYear = testObj.getFileYears()
-                assert startyear == '2022'
-                assert modYear == '2025'
+def test007_get_filesystem_years_file_pass(capsys):
+    """!
+    Test get_file_years(), Good path
+    """
+    mock_local_time = time.time()
+    expected_str = time.strftime("%Y", time.localtime(mock_local_time))
+    with patch('os.path.getctime', MagicMock(return_value = mock_local_time)):
+        with patch('os.path.getmtime', MagicMock(return_value = mock_local_time)):
+            test_obj = GetFileSystemYears("testfile")
+            create_year, modify_year = test_obj.get_file_years()
+            assert create_year == expected_str
+            assert modify_year == expected_str
+            assert capsys.readouterr().out == ""
 
-    def test002_get_year_file_system(self):
-        def existReturn(filename):
-            if filename == "testfile":
-                return True
-            elif filename == ".git":
-                return False
-            else:
-                return False
+def test008_get_creation_year_pass():
+    """!
+    Test _get_creation_year(), Git cmd pass
+    """
+    ret_code_pass = subprocess.CompletedProcess("git",
+                                                0,
+                                                "2022-01-01T12:00:00-06:00".encode('utf-8'),
+                                                "")
+    with patch('subprocess.run', MagicMock(return_value = ret_code_pass)):
+        test_obj = GetGitArchiveFileYears("testfile")
+        year = test_obj._get_creation_year()
+        assert year == '2022'
 
-        with patch('os.path.exists', MagicMock(side_effect = existReturn)), patch('os.path.isfile', MagicMock(return_value = True)):
-            localTime = time.time()
-            expectedStr = time.strftime("%Y", time.localtime(localTime))
-            with patch('os.path.getctime', MagicMock(return_value = localTime)), patch('os.path.getmtime', MagicMock(return_value = localTime)):
-                testObj = GetFileYears("testfile")
-                startyear, modYear = testObj.getFileYears()
-                assert startyear == expectedStr
-                assert modYear == expectedStr
+def test009_get_creation_year_git_fail(capsys):
+    """!
+    Test _get_creation_year(), Git cmd failed
+    """
+    ret_code_fail = subprocess.CompletedProcess("git",
+                                                2,
+                                                "git error msg".encode('utf-8'),
+                                                "")
+    with patch('subprocess.run', MagicMock(return_value = ret_code_fail)):
+        test_obj = GetGitArchiveFileYears("testfile")
+        year = test_obj._get_creation_year()
+        assert year is None
+        assert capsys.readouterr().out == "ERROR: Git creation date failed: git error msg\n"
 
-    def test003_get_year_file_system_git_not_dir(self):
-        def existReturn(filename):
-            if filename == "testfile":
-                return True
-            elif filename == ".git":
-                return True
-            else:
-                return False
+def test010_get_creation_year_system_failure(capsys):
+    """!
+    Test _get_creation_year(), Git subprocess failure
+    """
+    ret_code_error = subprocess.CompletedProcess("", 2, "git error msg", "")
+    with patch('subprocess.run', MagicMock(return_value = ret_code_error)) as subproc:
+        subproc.side_effect = subprocess.CalledProcessError(2, "git_cmd", "", "git error msg")
 
-        with patch('os.path.exists', MagicMock(side_effect = existReturn)), patch('os.path.isfile', MagicMock(return_value = True)), patch('os.path.isdir', MagicMock(return_value = False)):
-            localTime = time.time()
-            expectedStr = time.strftime("%Y", time.localtime(localTime))
-            with patch('os.path.getctime', MagicMock(return_value = localTime)), patch('os.path.getmtime', MagicMock(return_value = localTime)):
-                testObj = GetFileYears("testfile")
-                startyear, modYear = testObj.getFileYears()
-                assert startyear == expectedStr
-                assert modYear == expectedStr
+        test_obj = GetGitArchiveFileYears("testfile")
+        year = test_obj._get_creation_year()
+        assert year is None
+        assert capsys.readouterr().out == "ERROR: Git creation date command failed for " \
+                                          "file: testfile\n"
 
-    def test004_get_years_fail_no_file(self):
-        def existReturn(filename):
-            if filename == "testfile":
-                return False
-            elif filename == ".git":
-                return True
-            else:
-                return False
+def test011_get_last_mod_year_pass():
+    """!
+    Test _get_last_modification_year(), Git cmd pass
+    """
+    ret_code_pass = subprocess.CompletedProcess("git",
+                                                0,
+                                                "2023-01-01T12:00:00-06:00".encode('utf-8'),
+                                                "")
+    with patch('subprocess.run', MagicMock(return_value = ret_code_pass)):
+        test_obj = GetGitArchiveFileYears("testfile")
+        year = test_obj._get_last_modification_year()
+        assert year == '2023'
 
-        with patch('os.path.exists', MagicMock(side_effect = existReturn)), patch('os.path.isfile', MagicMock(return_value = True)), patch('os.path.isdir', MagicMock(return_value = True)):
-            output = io.StringIO()
-            with contextlib.redirect_stdout(output):
-                testObj = GetFileYears("testfile")
-                startyear, modYear = testObj.getFileYears()
+def test012_get_last_mod_year_git_fail(capsys):
+    """!
+    Test _get_last_modification_year(), Git cmd failed
+    """
+    ret_code_fail = subprocess.CompletedProcess("git",
+                                                2,
+                                                "git error msg".encode('utf-8'),
+                                                "")
+    with patch('subprocess.run', MagicMock(return_value = ret_code_fail)):
+        test_obj = GetGitArchiveFileYears("testfile")
+        year = test_obj._get_last_modification_year()
+        assert year is None
+        assert capsys.readouterr().out == "ERROR: Git last modification date failed: " \
+                                    "git error msg\n"
+
+def test013_get_last_mod_year_system_failure(capsys):
+    """!
+    Test _get_last_modification_year(), Git subprocess failure
+    """
+    ret_code_error = subprocess.CompletedProcess("", 2, "git error msg", "")
+    with patch('subprocess.run', MagicMock(return_value = ret_code_error)) as subproc:
+        subproc.side_effect = subprocess.CalledProcessError(2, "git_cmd", "", "git error msg")
+        test_obj = GetGitArchiveFileYears("testfile")
+        year = test_obj._get_last_modification_year()
+        assert year is None
+        assert capsys.readouterr().out == "ERROR: Git last modification date command failed " \
+                                          "for file: testfile\n"
+
+def test014_get_years_pass():
+    """!
+    Test get_file_years(), Git pass
+    """
+    # pylint: disable=unused-argument
+    def mockrun(args, *, stdin=None,
+                    inputstd=None, stdout=None,
+                    stderr=None, capture_output=False,
+                    shell=False, cwd=None,
+                    timeout=None, check=False,
+                    encoding=None, errors=None,
+                    text=None, env=None, universal_newlines=None,
+                    **other_popen_kwargs):
+
+        git_cmd = ""
+        prefix = ""
+        for element in args:
+            git_cmd += prefix
+            git_cmd += element
+            prefix = " "
+        if args[2] == "-1":
+            return subprocess.CompletedProcess(git_cmd,
+                                               0,
+                                               "2024-01-01T12:00:00-06:00".encode('utf-8'),
+                                               "")
+        elif args[2] == "--diff-filter=A":
+            return subprocess.CompletedProcess(git_cmd,
+                                               0,
+                                               "2023-01-01T12:00:00-06:00".encode('utf-8'),
+                                               "")
+        else:
+            return subprocess.CompletedProcess(git_cmd,
+                                               2,
+                                               "Git error".encode('utf-8'),
+                                               "")
+    # pylint: enable=unused-argument
+
+    with patch('subprocess.run', MagicMock(side_effect = mockrun)):
+        test_obj = GetGitArchiveFileYears("testfile")
+        startyear, modify_year = test_obj.get_file_years()
+        assert startyear == '2023'
+        assert modify_year == '2024'
+
+def test015_get_years_start_fail(capsys):
+    """!
+    Test get_file_years(), Git pass
+    """
+    # pylint: disable=unused-argument
+    def mockrun(args, *, stdin=None,
+                    inputstd=None, stdout=None,
+                    stderr=None, capture_output=False,
+                    shell=False, cwd=None,
+                    timeout=None, check=False,
+                    encoding=None, errors=None,
+                    text=None, env=None, universal_newlines=None,
+                    **other_popen_kwargs):
+
+        git_cmd = ""
+        prefix = ""
+        for element in args:
+            git_cmd += prefix
+            git_cmd += element
+            prefix = " "
+        if args[2] == "-1":
+            return subprocess.CompletedProcess(git_cmd,
+                                               0,
+                                               "2024-01-01T12:00:00-06:00".encode('utf-8'),
+                                               "")
+        elif args[2] == "--diff-filter=A":
+            return subprocess.CompletedProcess(git_cmd,
+                                               2,
+                                               "git error msg".encode('utf-8'),
+                                               "")
+        else:
+            return subprocess.CompletedProcess(git_cmd,
+                                               4,
+                                               "Git error".encode('utf-8'),
+                                               "")
+    # pylint: enable=unused-argument
+
+    with patch('subprocess.run', MagicMock(side_effect = mockrun)):
+        test_obj = GetGitArchiveFileYears("testfile")
+        startyear, modify_year = test_obj.get_file_years()
+        assert startyear is None
+        assert modify_year is None
+        assert capsys.readouterr().out == "ERROR: Git creation date failed: git error msg\n"
+
+def test016_get_years_las_mod_fail(capsys):
+    """!
+    Test get_file_years(), Git pass
+    """
+    # pylint: disable=unused-argument
+    def mockrun(args, *, stdin=None,
+                    inputstd=None, stdout=None,
+                    stderr=None, capture_output=False,
+                    shell=False, cwd=None,
+                    timeout=None, check=False,
+                    encoding=None, errors=None,
+                    text=None, env=None, universal_newlines=None,
+                    **other_popen_kwargs):
+
+        git_cmd = ""
+        prefix = ""
+        for element in args:
+            git_cmd += prefix
+            git_cmd += element
+            prefix = " "
+        if args[2] == "-1":
+            return subprocess.CompletedProcess(git_cmd,
+                                               2,
+                                               "git error msg".encode('utf-8'),
+                                               "")
+        elif args[2] == "--diff-filter=A":
+            return subprocess.CompletedProcess(git_cmd,
+                                               0,
+                                               "2024-01-01T12:00:00-06:00".encode('utf-8'),
+                                               "")
+        else:
+            return subprocess.CompletedProcess(git_cmd,
+                                               4,
+                                               "Git error".encode('utf-8'),
+                                               "")
+    # pylint: enable=unused-argument
+
+    with patch('subprocess.run', MagicMock(side_effect = mockrun)):
+        test_obj = GetGitArchiveFileYears("testfile")
+        startyear, modify_year = test_obj.get_file_years()
+        assert startyear is None
+        assert modify_year is None
+        expected = capsys.readouterr().out
+        assert expected == "ERROR: Git last modification date failed: git error msg\n"
+
+def test017_get_year_git():
+    """!
+    Test GIT get_file_years() method
+    """
+    def exist_return(filename):
+        if filename == "testfile":
+            return True
+        elif filename == ".git":
+            return True
+        else:
+            return False
+
+    # pylint: disable=unused-argument
+    def mockrun(args, *, stdin=None,
+                    inputstd=None, stdout=None,
+                    stderr=None, capture_output=False,
+                    shell=False, cwd=None,
+                    timeout=None, check=False,
+                    encoding=None, errors=None,
+                    text=None, env=None, universal_newlines=None,
+                    **other_popen_kwargs):
+
+        git_cmd = ""
+        prefix = ""
+        for element in args:
+            git_cmd += prefix
+            git_cmd += element
+            prefix = " "
+        if args[2] == "-1":
+            return subprocess.CompletedProcess(git_cmd,
+                                               0,
+                                               "2025-01-01T12:00:00-06:00".encode('utf-8'),
+                                               "")
+        elif args[2] == "--diff-filter=A":
+            return subprocess.CompletedProcess(git_cmd,
+                                               0,
+                                               "2022-01-01T12:00:00-06:00".encode('utf-8'),
+                                               "")
+        else:
+            return subprocess.CompletedProcess(git_cmd,
+                                               4,
+                                               "Git error".encode('utf-8'),
+                                               "")
+    # pylint: enable=unused-argument
+
+    with patch('os.path.exists', MagicMock(side_effect = exist_return)):
+        with patch('os.path.isfile', MagicMock(return_value = True)):
+            with patch('os.path.isdir', MagicMock(return_value = True)):
+                with patch('subprocess.run', MagicMock(side_effect = mockrun)):
+                    test_obj = GetFileYears("testfile")
+                    startyear, modify_year = test_obj.get_file_years()
+                    assert startyear == '2022'
+                    assert modify_year == '2025'
+
+def test018_get_year_file_system():
+    """!
+    @brief Test file system get_file_years
+    """
+    def exist_return(filename):
+        if filename == "testfile":
+            return True
+        elif filename == ".git":
+            return False
+        else:
+            return False
+
+    with patch('os.path.exists', MagicMock(side_effect = exist_return)):
+        with patch('os.path.isfile', MagicMock(return_value = True)):
+            mock_local_time = time.time()
+            expected_str = time.strftime("%Y", time.localtime(mock_local_time))
+            with patch('os.path.getctime', MagicMock(return_value = mock_local_time)):
+                with patch('os.path.getmtime', MagicMock(return_value = mock_local_time)):
+                    test_obj = GetFileYears("testfile")
+                    startyear, modify_year = test_obj.get_file_years()
+                    assert startyear == expected_str
+                    assert modify_year == expected_str
+
+def test019_get_year_file_system_git_not_dir():
+    """!
+    @brief Test get_file_years object return function, file system object
+    """
+    def exist_return(filename):
+        if filename == "testfile":
+            return True
+        elif filename == ".git":
+            return True
+        else:
+            return False
+
+    with patch('os.path.exists', MagicMock(side_effect = exist_return)):
+        with patch('os.path.isfile', MagicMock(return_value = True)):
+            with patch('os.path.isdir', MagicMock(return_value = False)):
+                mock_local_time = time.time()
+                expected_str = time.strftime("%Y", time.localtime(mock_local_time))
+                with patch('os.path.getctime', MagicMock(return_value = mock_local_time)):
+                    with patch('os.path.getmtime', MagicMock(return_value = mock_local_time)):
+                        test_obj = GetFileYears("testfile")
+                        startyear, modify_year = test_obj.get_file_years()
+                        assert startyear == expected_str
+                        assert modify_year == expected_str
+
+def test020_get_years_fail_no_file(capsys):
+    """!
+    @brief Test get_file_years object return function, file does not exist
+    """
+    def exist_return(filename):
+        if filename == "testfile":
+            return False
+        elif filename == ".git":
+            return True
+        else:
+            return False
+
+    with patch('os.path.exists', MagicMock(side_effect = exist_return)):
+        with patch('os.path.isfile', MagicMock(return_value = True)):
+            with patch('os.path.isdir', MagicMock(return_value = True)):
+                test_obj = GetFileYears("testfile")
+                startyear, modify_year = test_obj.get_file_years()
                 assert startyear is None
-                assert modYear is None
-                assert output.getvalue() == "ERROR: File: \"testfile\" does not exist or is not a file.\n"
+                assert modify_year is None
+                expected = "ERROR: File: \"testfile\" does not exist or is not a file.\n"
+                assert capsys.readouterr().out == expected
 
-    def test005_get_years_fail_not_file(self):
-        def existReturn(filename):
-            if filename == "testfile":
-                return True
-            elif filename == ".git":
-                return True
-            else:
-                return False
+def test021_get_years_fail_not_file(capsys):
+    """!
+    @brief Test get_file_years object return function, not a file failure
+    """
+    def exist_return(filename):
+        if filename == "testfile":
+            return True
+        elif filename == ".git":
+            return True
+        else:
+            return False
 
-        with patch('os.path.exists', MagicMock(side_effect = existReturn)), patch('os.path.isfile', MagicMock(return_value = False)), patch('os.path.isdir', MagicMock(return_value = True)):
-            output = io.StringIO()
-            with contextlib.redirect_stdout(output):
-                testObj = GetFileYears("testfile")
-                startyear, modYear = testObj.getFileYears()
+    with patch('os.path.exists', MagicMock(side_effect = exist_return)):
+        with patch('os.path.isfile', MagicMock(return_value = False)):
+            with patch('os.path.isdir', MagicMock(return_value = True)):
+                test_obj = GetFileYears("testfile")
+                startyear, modify_year = test_obj.get_file_years()
                 assert startyear is None
-                assert modYear is None
-                assert output.getvalue() == "ERROR: File: \"testfile\" does not exist or is not a file.\n"
+                assert modify_year is None
+                expected = "ERROR: File: \"testfile\" does not exist or is not a file.\n"
+                assert capsys.readouterr().out == expected
 
-
-if __name__ == '__main__':
-    unittest.main()
+    with patch('os.path.exists', MagicMock(side_effect = exist_return)):
+        with patch('os.path.isfile', MagicMock(return_value = False)):
+            with patch('os.path.isdir', MagicMock(return_value = True)):
+                test_obj = GetFileYears("testfile")
+                startyear, modify_year = test_obj.get_file_years()
+                assert startyear is None
+                assert modify_year is None
+                expected = "ERROR: File: \"testfile\" does not exist or is not a file.\n"
+                assert capsys.readouterr().out == expected

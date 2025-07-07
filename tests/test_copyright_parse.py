@@ -1,8 +1,6 @@
 """@package test_programmer_tools
-Unittest for programmer base tools utility
-
+Unittest for copyright maintenance utility
 """
-
 #==========================================================================
 # Copyright (c) 2024 Randal Eike
 #
@@ -27,443 +25,449 @@ Unittest for programmer base tools utility
 
 import os
 
-
-from dir_init import TESTFILEPATH
-from dir_init import pathincsetup
-pathincsetup()
-testFileBaseDir = TESTFILEPATH
+from dir_init import TEST_FILE_PATH
 
 from copyright_maintenance_grocsoftware.copyright_tools import CopyrightParseEnglish
-from copyright_maintenance_grocsoftware.copyright_tools import CopyrightGenerator
-from copyright_maintenance_grocsoftware.copyright_tools import CopyrightFinder
+from copyright_maintenance_grocsoftware.copyright_generator import CopyrightGenerator
+from copyright_maintenance_grocsoftware.copyright_finder import CopyrightFinder
+
+TEST_FILE_BASE_DIR = TEST_FILE_PATH
+
+# pylint: disable=protected-access
 
 class TestClass06CopyrightParserEnglish:
     """!
     @brief Unit test for the english copyright parser class
     """
-    def test001CopyrightCheckDefault(self):
+    def test001_copyright_check_default(self):
         """!
-        @brief Test createCopyrightMsg.  Everything else was tested in the base and order unit tests
+        @brief Test create_copyright_msg.  Everything else was tested in the base and
+               order unit tests
         """
-        self.tstParser = CopyrightParseEnglish()
+        test_parser = CopyrightParseEnglish()
 
-        testStr = self.tstParser.createCopyrightMsg("James Kirk", 2024, 2024)
-        assert testStr == "Copyright (c) 2024 James Kirk"
+        test_string = test_parser.create_copyright_msg("James Kirk", 2024, 2024)
+        assert test_string == "Copyright (c) 2024 James Kirk"
 
-        testStr = self.tstParser.createCopyrightMsg("James Kirk", 2022, 2024)
-        assert testStr == "Copyright (c) 2022-2024 James Kirk"
+        test_string = test_parser.create_copyright_msg("James Kirk", 2022, 2024)
+        assert test_string == "Copyright (c) 2022-2024 James Kirk"
 
-        testStr = self.tstParser.createCopyrightMsg("Mr. Spock", 2024, None)
-        assert testStr == "Copyright (c) 2024 Mr. Spock"
+        test_string = test_parser.create_copyright_msg("Mr. Spock", 2024, None)
+        assert test_string == "Copyright (c) 2024 Mr. Spock"
 
-        testStr = self.tstParser.createCopyrightMsg("Mr. Spock", 2023)
-        assert testStr == "Copyright (c) 2023 Mr. Spock"
+        test_string = test_parser.create_copyright_msg("Mr. Spock", 2023)
+        assert test_string == "Copyright (c) 2023 Mr. Spock"
 
 class TestClass07CopyrightGenerator:
     """!
     @brief Unit test for the copyright generator class
     """
-    def test000CopyrightGenerationisMultiYear(self):
+    def test000_copyright_generation_is_multi_year(self):
         """!
-        @brief Test the parser of parseCopyrightMsg() with valid message and default regx
+        @brief Test the parser of _is_multi_year()
         """
-        assert not CopyrightGenerator._isMultiYear(2022, None)
-        assert not CopyrightGenerator._isMultiYear(2022, 2022)
-        assert CopyrightGenerator._isMultiYear(2022, 2023)
+        assert not CopyrightGenerator._is_multi_year(2022, None)
+        assert not CopyrightGenerator._is_multi_year(2022, 2022)
+        assert CopyrightGenerator._is_multi_year(2022, 2023)
 
-    def test001CopyrightDefaultGeneration(self):
+    def test001_copyright_default_generation(self):
         """!
-        @brief Test the parser of parseCopyrightMsg() with valid message and default regx
+        @brief Test the parser of get_new_copyright_msg()
         """
-        tstGenerator = CopyrightGenerator()
+        test_generator = CopyrightGenerator()
 
-        _, defaultMsg = tstGenerator.getNewCopyrightMsg(2022, 2022)
-        assert defaultMsg == 'Copyright (c) 2022 None'
+        _, copyright_msg = test_generator.get_new_copyright_msg(2022, 2022)
+        assert copyright_msg == 'Copyright (c) 2022 None'
 
-        _, defaultMsg = tstGenerator.getNewCopyrightMsg(2022,2024)
-        assert defaultMsg == 'Copyright (c) 2022-2024 None'
+        _, copyright_msg = test_generator.get_new_copyright_msg(2022,2024)
+        assert copyright_msg == 'Copyright (c) 2022-2024 None'
 
-    def test002CopyrightBaseGenerationSingleYear(self):
+    def test002_copyright_base_generation_single_year(self):
         """!
-        @brief Test the parser of parseCopyrightMsg() with valid message and default regx
+        @brief Test the parser of parse_copyright_msg() with valid single year
+               message and default regx
         """
-        self.tstParser = CopyrightParseEnglish()
-        tstGenerator = CopyrightGenerator(self.tstParser)
+        test_parser = CopyrightParseEnglish()
+        test_generator = CopyrightGenerator(test_parser)
 
-        copyrightMsg = "Copyright (C) 2022 Scott Summers"
-        self.tstParser.parseCopyrightMsg(copyrightMsg)
+        copyright_msg = "Copyright (C) 2022 Scott Summers"
+        test_parser.parse_copyright_msg(copyright_msg)
 
         # Unchanged, create year == last modification year
-        changed, newMsg = tstGenerator._getNewCopyrightMsg(2022, 2022)
+        changed, new_msg = test_generator._get_new_copyright_msg(2022, 2022)
         assert not changed
-        assert newMsg == copyrightMsg
+        assert new_msg == copyright_msg
 
         # Unchanged, create year, last modification year = None
-        changed, newMsg = tstGenerator._getNewCopyrightMsg(2022)
+        changed, new_msg = test_generator._get_new_copyright_msg(2022)
         assert not changed
-        assert newMsg == copyrightMsg
+        assert new_msg == copyright_msg
 
         # Changed, create year > current year, last modification year = None
-        changed, newMsg = tstGenerator._getNewCopyrightMsg(2023)
+        changed, new_msg = test_generator._get_new_copyright_msg(2023)
         assert not changed
-        assert newMsg == copyrightMsg
+        assert new_msg == copyright_msg
 
         # Changed, create year < current year, last modification year = None
-        changed, newMsg = tstGenerator._getNewCopyrightMsg(2021)
+        changed, new_msg = test_generator._get_new_copyright_msg(2021)
         assert changed
-        assert newMsg == "Copyright (C) 2021 Scott Summers"
+        assert new_msg == "Copyright (C) 2021 Scott Summers"
 
-    def test003CopyrightBaseGenerationSingleYearMultiMsg(self):
+    def test003_copyright_base_generation_single_year_multi_msg(self):
         """!
-        @brief Test the parser of parseCopyrightMsg() with valid message and default regx
+        @brief Test the parser of parse_copyright_msg() with valid message and default regx
         """
-        self.tstParser = CopyrightParseEnglish()
-        tstGenerator = CopyrightGenerator(self.tstParser)
+        test_parser = CopyrightParseEnglish()
+        test_generator = CopyrightGenerator(test_parser)
 
-        copyrightMsg = "Copyright (C) 2022-2023 Scott Summers"
-        self.tstParser.parseCopyrightMsg(copyrightMsg)
+        copyright_msg = "Copyright (C) 2022-2023 Scott Summers"
+        test_parser.parse_copyright_msg(copyright_msg)
 
         # Unchanged, create year = current year, last modification year = None
-        changed, newMsg = tstGenerator._getNewCopyrightMsg(2022)
+        changed, new_msg = test_generator._get_new_copyright_msg(2022)
         assert not changed
-        assert newMsg == copyrightMsg
+        assert new_msg == copyright_msg
 
         # Unchanged, create year <= current end year, last modification year = None
-        changed, newMsg = tstGenerator._getNewCopyrightMsg(2023)
+        changed, new_msg = test_generator._get_new_copyright_msg(2023)
         assert not changed
-        assert newMsg == copyrightMsg
+        assert new_msg == copyright_msg
 
         # Changed, create year < current year, last modification year = new year
-        changed, newMsg = tstGenerator._getNewCopyrightMsg(2021)
+        changed, new_msg = test_generator._get_new_copyright_msg(2021)
         assert changed
-        assert newMsg == "Copyright (C) 2021-2023 Scott Summers"
+        assert new_msg == "Copyright (C) 2021-2023 Scott Summers"
 
         # Changed, create year > current end year, last modification year = new year
-        changed, newMsg = tstGenerator._getNewCopyrightMsg(2024)
+        changed, new_msg = test_generator._get_new_copyright_msg(2024)
         assert changed
-        assert newMsg == "Copyright (C) 2022-2024 Scott Summers"
+        assert new_msg == "Copyright (C) 2022-2024 Scott Summers"
 
-    def test004CopyrightBaseGenerationMultiYear(self):
+    def test004_copyright_base_generation_multi_year(self):
         """!
-        @brief Test the parser of parseCopyrightMsg() with valid message and default regx
+        @brief Test the parser of parse_copyright_msg() with valid message and default regx
         """
-        self.tstParser = CopyrightParseEnglish()
-        tstGenerator = CopyrightGenerator(self.tstParser)
+        test_parser = CopyrightParseEnglish()
+        test_generator = CopyrightGenerator(test_parser)
 
-        copyrightMsg = "Copyright (C) 2022-2023 Scott Summers"
-        self.tstParser.parseCopyrightMsg(copyrightMsg)
+        copyright_msg = "Copyright (C) 2022-2023 Scott Summers"
+        test_parser.parse_copyright_msg(copyright_msg)
 
         # Unchanged, create year = current year, last modification year = new year
-        changed, newMsg = tstGenerator._getNewCopyrightMsg(2022, 2023)
+        changed, new_msg = test_generator._get_new_copyright_msg(2022, 2023)
         assert not changed
-        assert newMsg == copyrightMsg
+        assert new_msg == copyright_msg
 
         # Changed, create year = current year, last modification year = new year
-        changed, newMsg = tstGenerator._getNewCopyrightMsg(2022, 2024)
+        changed, new_msg = test_generator._get_new_copyright_msg(2022, 2024)
         assert changed
-        assert newMsg == "Copyright (C) 2022-2024 Scott Summers"
+        assert new_msg == "Copyright (C) 2022-2024 Scott Summers"
 
         # Changed, create year > current year, last modification year = new year
-        changed, newMsg = tstGenerator._getNewCopyrightMsg(2023, 2024)
+        changed, new_msg = test_generator._get_new_copyright_msg(2023, 2024)
         assert changed
-        assert newMsg == "Copyright (C) 2022-2024 Scott Summers"
+        assert new_msg == "Copyright (C) 2022-2024 Scott Summers"
 
         # Changed, create year < current year, last modification year = new year
-        changed, newMsg = tstGenerator._getNewCopyrightMsg(2021, 2023)
+        changed, new_msg = test_generator._get_new_copyright_msg(2021, 2023)
         assert changed
-        assert newMsg == "Copyright (C) 2021-2023 Scott Summers"
+        assert new_msg == "Copyright (C) 2021-2023 Scott Summers"
 
-    def test005CopyrightNormalGenerationNoChange(self):
+    def test005_copyright_normal_generation_no_change(self):
         """!
-        @brief Test the parser of getNewCopyrightMsg() with valid message and default regx
+        @brief Test the parser of get_new_copyright_msg() with valid message and default regx
         """
-        self.tstParser = CopyrightParseEnglish()
-        tstGenerator = CopyrightGenerator(self.tstParser)
+        test_parser = CopyrightParseEnglish()
+        test_generator = CopyrightGenerator(test_parser)
 
-        copyrightMsg = "Copyright (C) 2022 Scott Summers"
-        self.tstParser.parseCopyrightMsg(copyrightMsg)
+        copyright_msg = "Copyright (C) 2022 Scott Summers"
+        test_parser.parse_copyright_msg(copyright_msg)
 
-        changed, newMsg = tstGenerator.getNewCopyrightMsg(2022, 2022)
+        changed, new_msg = test_generator.get_new_copyright_msg(2022, 2022)
         assert not changed
-        assert newMsg == copyrightMsg
+        assert new_msg == copyright_msg
 
-        copyrightMsg = "Copyright (C) 2022-2024 Scott Summers"
-        self.tstParser.parseCopyrightMsg(copyrightMsg)
-        changed, newMsg = tstGenerator.getNewCopyrightMsg(2022, 2024)
+        copyright_msg = "Copyright (C) 2022-2024 Scott Summers"
+        test_parser.parse_copyright_msg(copyright_msg)
+        changed, new_msg = test_generator.get_new_copyright_msg(2022, 2024)
         assert not changed
-        assert newMsg == copyrightMsg
+        assert new_msg == copyright_msg
 
         # Verify no move forward
-        copyrightMsg = "Copyright (C) 2022-2024 Scott Summers"
-        self.tstParser.parseCopyrightMsg(copyrightMsg)
-        changed, newMsg = tstGenerator.getNewCopyrightMsg(2023, 2024)
+        copyright_msg = "Copyright (C) 2022-2024 Scott Summers"
+        test_parser.parse_copyright_msg(copyright_msg)
+        changed, new_msg = test_generator.get_new_copyright_msg(2023, 2024)
         assert not changed
-        assert newMsg == copyrightMsg
+        assert new_msg == copyright_msg
 
-    def test006CopyrightNormalGenerationChange(self):
+    def test006_copyright_normal_generation_change(self):
         """!
-        @brief Test the parser of getNewCopyrightMsg() with valid message and default regx
+        @brief Test the parser of get_new_copyright_msg() with valid message and default regx
         """
-        self.tstParser = CopyrightParseEnglish()
-        tstGenerator = CopyrightGenerator(self.tstParser)
+        test_parser = CopyrightParseEnglish()
+        test_generator = CopyrightGenerator(test_parser)
 
-        copyrightMsg = "Copyright (C) 2022 Scott Summers"
-        self.tstParser.parseCopyrightMsg(copyrightMsg)
+        copyright_msg = "Copyright (C) 2022 Scott Summers"
+        test_parser.parse_copyright_msg(copyright_msg)
 
-        changed, newMsg = tstGenerator.getNewCopyrightMsg(2022,2023)
+        changed, new_msg = test_generator.get_new_copyright_msg(2022,2023)
         assert changed
-        assert newMsg == "Copyright (C) 2022-2023 Scott Summers"
+        assert new_msg == "Copyright (C) 2022-2023 Scott Summers"
 
-        copyrightMsg = newMsg
-        self.tstParser.parseCopyrightMsg(copyrightMsg)
-        changed, newMsg = tstGenerator.getNewCopyrightMsg(2022,2024)
+        copyright_msg = new_msg
+        test_parser.parse_copyright_msg(copyright_msg)
+        changed, new_msg = test_generator.get_new_copyright_msg(2022,2024)
         assert changed
-        assert newMsg == "Copyright (C) 2022-2024 Scott Summers"
+        assert new_msg == "Copyright (C) 2022-2024 Scott Summers"
 
         # Verify no move forward, multiyear
-        self.tstParser.parseCopyrightMsg(copyrightMsg)
-        changed, newMsg = tstGenerator.getNewCopyrightMsg(2023, 2024)
+        test_parser.parse_copyright_msg(copyright_msg)
+        changed, new_msg = test_generator.get_new_copyright_msg(2023, 2024)
         assert changed
-        assert newMsg == "Copyright (C) 2022-2024 Scott Summers"
+        assert new_msg == "Copyright (C) 2022-2024 Scott Summers"
 
-    def test007CreateCopyrightTransition(self):
+    def test007_create_copyright_transition(self):
         """!
-        @brief Test the parser of createCopyrightTransition() with valid message and default regx
+        @brief Test the parser of create_copyright_transition() with valid message and default regx
         """
-        self.tstParser = CopyrightParseEnglish()
-        tstGenerator = CopyrightGenerator(self.tstParser)
+        test_parser = CopyrightParseEnglish()
+        test_generator = CopyrightGenerator(test_parser)
 
-        copyrightMsg = "Copyright (C) 2022-2035 Scott Summers"
-        self.tstParser.parseCopyrightMsg(copyrightMsg)
+        copyright_msg = "Copyright (C) 2022-2035 Scott Summers"
+        test_parser.parse_copyright_msg(copyright_msg)
 
-        changed, oldMsg, newMsg = tstGenerator.createCopyrightTransition(2022,2032,2035,"Logan")
+        changed, old_msg, new_msg = test_generator.create_copyright_transition(2022,2032,2035,
+                                                                               "Logan")
         assert changed
-        assert oldMsg == "Copyright (C) 2022-2032 Scott Summers"
-        assert newMsg == "Copyright (C) 2032-2035 Logan"
+        assert old_msg == "Copyright (C) 2022-2032 Scott Summers"
+        assert new_msg == "Copyright (C) 2032-2035 Logan"
 
-        changed, oldMsg, newMsg = tstGenerator.createCopyrightTransition(2022,2035,2035,"Logan")
+        changed, old_msg, new_msg = test_generator.create_copyright_transition(2022,2035,2035,
+                                                                               "Logan")
         assert not changed
-        assert oldMsg == "Copyright (C) 2022-2035 Scott Summers"
-        assert newMsg == "Copyright (C) 2035 Logan"
+        assert old_msg == "Copyright (C) 2022-2035 Scott Summers"
+        assert new_msg == "Copyright (C) 2035 Logan"
 
-    def test008AddCopyrightOwner(self):
+    def test008_add_copyright_owner(self):
         """!
-        @brief Test the parser of addCopyrightOwner() with valid message and default regx
+        @brief Test the parser of add_copyright_owner() with valid message and default regx
         """
-        self.tstParser = CopyrightParseEnglish()
-        tstGenerator = CopyrightGenerator(self.tstParser)
+        test_parser = CopyrightParseEnglish()
+        test_generator = CopyrightGenerator(test_parser)
 
-        copyrightMsg = "Copyright (C) 2022 Scott Summers"
-        self.tstParser.parseCopyrightMsg(copyrightMsg)
+        copyright_msg = "Copyright (C) 2022 Scott Summers"
+        test_parser.parse_copyright_msg(copyright_msg)
 
-        changed, newMsg = tstGenerator.addCopyrightOwner(2022,2022,"Jean Gray")
+        changed, new_msg = test_generator.add_copyright_owner(2022,2022,"Jean Gray")
         assert changed
-        assert newMsg == "Copyright (C) 2022 Scott Summers, Jean Gray"
+        assert new_msg == "Copyright (C) 2022 Scott Summers, Jean Gray"
 
-        copyrightMsg = "Copyright (C) 2022 Scott Summers"
-        self.tstParser.parseCopyrightMsg(copyrightMsg)
+        copyright_msg = "Copyright (C) 2022 Scott Summers"
+        test_parser.parse_copyright_msg(copyright_msg)
 
-        changed, newMsg = tstGenerator.addCopyrightOwner(2022,2024,"Jean Gray")
+        changed, new_msg = test_generator.add_copyright_owner(2022,2024,"Jean Gray")
         assert changed
-        assert newMsg == "Copyright (C) 2022-2024 Scott Summers, Jean Gray"
+        assert new_msg == "Copyright (C) 2022-2024 Scott Summers, Jean Gray"
 
-        copyrightMsg = "Copyright (C) 2022-2035 Scott Summers"
-        self.tstParser.parseCopyrightMsg(copyrightMsg)
+        copyright_msg = "Copyright (C) 2022-2035 Scott Summers"
+        test_parser.parse_copyright_msg(copyright_msg)
 
-        changed, newMsg = tstGenerator.addCopyrightOwner(2022,2035,"Jean Gray")
+        changed, new_msg = test_generator.add_copyright_owner(2022,2035,"Jean Gray")
         assert changed
-        assert newMsg == "Copyright (C) 2022-2035 Scott Summers, Jean Gray"
+        assert new_msg == "Copyright (C) 2022-2035 Scott Summers, Jean Gray"
 
-    def test009AddCopyrightOwnerWithWrapper(self):
+    def test009_add_copyright_owner_with_wrapper(self):
         """!
-        @brief Test the parser of addCopyrightOwner() with valid message and default regx
+        @brief Test the parser of add_copyright_owner() with valid message and default regx
         """
-        self.tstParser = CopyrightParseEnglish()
-        tstGenerator = CopyrightGenerator(self.tstParser)
+        test_parser = CopyrightParseEnglish()
+        test_generator = CopyrightGenerator(test_parser)
 
-        copyrightMsg = "* Copyright (C) 2022 Scott Summers                   *"
-        self.tstParser.parseCopyrightMsg(copyrightMsg)
+        copyright_msg = "* Copyright (C) 2022 Scott Summers                   *"
+        test_parser.parse_copyright_msg(copyright_msg)
 
-        changed, newMsg = tstGenerator.addCopyrightOwner(2022,2022,"Jean Gray")
+        changed, new_msg = test_generator.add_copyright_owner(2022,2022,"Jean Gray")
         assert changed
-        assert newMsg == "* Copyright (C) 2022 Scott Summers, Jean Gray        *"
+        assert new_msg == "* Copyright (C) 2022 Scott Summers, Jean Gray        *"
 
-        copyrightMsg = "* Copyright (C) 2022 Scott Summers                   *"
-        self.tstParser.parseCopyrightMsg(copyrightMsg)
+        copyright_msg = "* Copyright (C) 2022 Scott Summers                   *"
+        test_parser.parse_copyright_msg(copyright_msg)
 
-        changed, newMsg = tstGenerator.addCopyrightOwner(2022,2024,"Jean Gray")
+        changed, new_msg = test_generator.add_copyright_owner(2022,2024,"Jean Gray")
         assert changed
-        assert newMsg == "* Copyright (C) 2022-2024 Scott Summers, Jean Gray   *"
+        assert new_msg == "* Copyright (C) 2022-2024 Scott Summers, Jean Gray   *"
 
-        copyrightMsg = "* Copyright (C) 2022-2035 Scott Summers              *"
-        self.tstParser.parseCopyrightMsg(copyrightMsg)
+        copyright_msg = "* Copyright (C) 2022-2035 Scott Summers              *"
+        test_parser.parse_copyright_msg(copyright_msg)
 
-        changed, newMsg = tstGenerator.addCopyrightOwner(2022,2035,"Jean Gray")
+        changed, new_msg = test_generator.add_copyright_owner(2022,2035,"Jean Gray")
         assert changed
-        assert newMsg == "* Copyright (C) 2022-2035 Scott Summers, Jean Gray   *"
+        assert new_msg == "* Copyright (C) 2022-2035 Scott Summers, Jean Gray   *"
 
-    def test010AddCopyrightOwnerFailed(self):
+    def test010_add_copyright_owner_failed(self):
         """!
-        @brief Test the parser of addCopyrightOwner() with invalid message and default regx
+        @brief Test the parser of add_copyright_owner() with invalid message and default regx
         """
-        self.tstParser = CopyrightParseEnglish()
-        tstGenerator = CopyrightGenerator(self.tstParser)
-        changed, newMsg = tstGenerator.addCopyrightOwner(2022,2035,"Jean Gray")
+        test_parser = CopyrightParseEnglish()
+        test_generator = CopyrightGenerator(test_parser)
+        changed, new_msg = test_generator.add_copyright_owner(2022,2035,"Jean Gray")
         assert not changed
-        assert newMsg is None
+        assert new_msg is None
 
-    def test011CreateNewMsg(self):
+    def test011_create_new_msg(self):
         """!
-        @brief Test the parser of createNewCopyright()
+        @brief Test the parser of create_new_copyright()
         """
-        self.tstParser = CopyrightParseEnglish()
-        tstGenerator = CopyrightGenerator(self.tstParser)
-        newMsg = tstGenerator.createNewCopyright("Jean Gray", 2022, 2035)
-        assert newMsg == "Copyright (c) 2022-2035 Jean Gray"
+        test_parser = CopyrightParseEnglish()
+        test_generator = CopyrightGenerator(test_parser)
+        new_msg = test_generator.create_new_copyright("Jean Gray", 2022, 2035)
+        assert new_msg == "Copyright (c) 2022-2035 Jean Gray"
 
 class TestClass08CopyrightFind:
     """!
     @brief Unit test for the copyright finder class
     """
 
-    def test001FindCopyrightLineC(self):
+    def test001_find_copyright_line_c(self):
         """!
-        @brief Test the parser of findNextCopyrightMsg() in C file
+        @brief Test the parser of find_next_copyright_msg() in C file
         """
-        testFilePath = os.path.join(testFileBaseDir, "testfile.c")
-        with open(testFilePath, "rt", encoding="utf-8") as testFile:
-            tstFinder = CopyrightFinder()
-            copyrightFound, locationDict = tstFinder.findNextCopyrightMsg(testFile, 0, None)
-            assert copyrightFound
-            assert locationDict['lineOffset'] == 3
-            assert locationDict['text'] == ' Copyright (c) 2022-2024 Randal Eike\n'
+        testfile_path = os.path.join(TEST_FILE_BASE_DIR, "testfile.c")
+        with open(testfile_path, "rt", encoding="utf-8") as testfile:
+            test_finder = CopyrightFinder()
+            copyright_found, location_dict = test_finder.find_next_copyright_msg(testfile, 0, None)
+            assert copyright_found
+            assert location_dict['lineOffset'] == 3
+            assert location_dict['text'] == ' Copyright (c) 2022-2024 Randal Eike\n'
 
-    def test001aFindCopyrightLineC(self):
+    def test001a_find_copyright_line_c(self):
         """!
-        @brief Test the parser of findNextCopyrightMsg() in C file, pass parser into constructor
+        @brief Test the parser of find_next_copyright_msg() in C file, pass parser into constructor
         """
-        testFilePath = os.path.join(testFileBaseDir, "testfile.c")
-        with open(testFilePath, "rt", encoding="utf-8") as testFile:
-            tstFinder = CopyrightFinder(CopyrightParseEnglish())
-            copyrightFound, locationDict = tstFinder.findNextCopyrightMsg(testFile, 0, None)
-            assert copyrightFound
-            assert locationDict['lineOffset'] == 3
-            assert locationDict['text'] == ' Copyright (c) 2022-2024 Randal Eike\n'
+        testfile_path = os.path.join(TEST_FILE_BASE_DIR, "testfile.c")
+        with open(testfile_path, "rt", encoding="utf-8") as testfile:
+            test_finder = CopyrightFinder(CopyrightParseEnglish())
+            copyright_found, location_dict = test_finder.find_next_copyright_msg(testfile, 0, None)
+            assert copyright_found
+            assert location_dict['lineOffset'] == 3
+            assert location_dict['text'] == ' Copyright (c) 2022-2024 Randal Eike\n'
 
-    def test002FindCopyrightLineCpp(self):
+    def test002_find_copyright_line_cpp(self):
         """!
-        @brief Test the parser of findNextCopyrightMsg() in cpp file
+        @brief Test the parser of find_next_copyright_msg() in cpp file
         """
-        testFilePath = os.path.join(testFileBaseDir, "testfile.cpp")
-        with open(testFilePath, "rt", encoding="utf-8") as testFile:
-            tstFinder = CopyrightFinder()
-            copyrightFound, locationDict = tstFinder.findNextCopyrightMsg(testFile, 0, None)
-            assert copyrightFound
-            assert locationDict['lineOffset'] == 3
-            assert locationDict['text'] == ' Copyright (c) 2022-2024 Randal Eike\n'
+        testfile_path = os.path.join(TEST_FILE_BASE_DIR, "testfile.cpp")
+        with open(testfile_path, "rt", encoding="utf-8") as testfile:
+            test_finder = CopyrightFinder()
+            copyright_found, location_dict = test_finder.find_next_copyright_msg(testfile, 0, None)
+            assert copyright_found
+            assert location_dict['lineOffset'] == 3
+            assert location_dict['text'] == ' Copyright (c) 2022-2024 Randal Eike\n'
 
-    def test003FindCopyrightLineH(self):
+    def test003_find_copyright_line_h(self):
         """!
-        @brief Test the parser of findNextCopyrightMsg() in h file
+        @brief Test the parser of find_next_copyright_msg() in h file
         """
-        testFilePath = os.path.join(testFileBaseDir, "testfile.h")
-        with open(testFilePath, "rt", encoding="utf-8") as testFile:
-            tstFinder = CopyrightFinder()
-            copyrightFound, locationDict = tstFinder.findNextCopyrightMsg(testFile, 0, None)
-            assert copyrightFound
-            assert locationDict['lineOffset'] == 3
-            assert locationDict['text'] == ' Copyright (c) 2022-2024 Randal Eike\n'
+        testfile_path = os.path.join(TEST_FILE_BASE_DIR, "testfile.h")
+        with open(testfile_path, "rt", encoding="utf-8") as testfile:
+            test_finder = CopyrightFinder()
+            copyright_found, location_dict = test_finder.find_next_copyright_msg(testfile, 0, None)
+            assert copyright_found
+            assert location_dict['lineOffset'] == 3
+            assert location_dict['text'] == ' Copyright (c) 2022-2024 Randal Eike\n'
 
-    def test004FindCopyrightLineHpp(self):
+    def test004_find_copyright_line_hpp(self):
         """!
-        @brief Test the parser of findNextCopyrightMsg() in hpp file
+        @brief Test the parser of find_next_copyright_msg() in hpp file
         """
-        testFilePath = os.path.join(testFileBaseDir, "testfile.hpp")
-        with open(testFilePath, "rt", encoding="utf-8") as testFile:
-            tstFinder = CopyrightFinder()
-            copyrightFound, locationDict = tstFinder.findNextCopyrightMsg(testFile, 0, None)
-            assert copyrightFound
-            assert locationDict['lineOffset'] == 3
-            assert locationDict['text'] == ' Copyright (c) 2022-2024 Randal Eike\n'
+        testfile_path = os.path.join(TEST_FILE_BASE_DIR, "testfile.hpp")
+        with open(testfile_path, "rt", encoding="utf-8") as testfile:
+            test_finder = CopyrightFinder()
+            copyright_found, location_dict = test_finder.find_next_copyright_msg(testfile, 0, None)
+            assert copyright_found
+            assert location_dict['lineOffset'] == 3
+            assert location_dict['text'] == ' Copyright (c) 2022-2024 Randal Eike\n'
 
-    def test005FindCopyrightLinePy(self):
+    def test005_find_copyright_line_py(self):
         """!
-        @brief Test the parser of findNextCopyrightMsg() in py file
+        @brief Test the parser of find_next_copyright_msg() in py file
         """
-        testFilePath = os.path.join(testFileBaseDir, "testfile.py")
-        with open(testFilePath, "rt", encoding="utf-8") as testFile:
-            tstFinder = CopyrightFinder()
-            copyrightFound, locationDict = tstFinder.findNextCopyrightMsg(testFile, 0, None)
-            assert copyrightFound
-            assert locationDict['lineOffset'] == 133
-            assert locationDict['text'] == '# Copyright (c) 2024 Randal Eike\n'
+        testfile_path = os.path.join(TEST_FILE_BASE_DIR, "testfile.py")
+        with open(testfile_path, "rt", encoding="utf-8") as testfile:
+            test_finder = CopyrightFinder()
+            copyright_found, location_dict = test_finder.find_next_copyright_msg(testfile, 0, None)
+            assert copyright_found
+            assert location_dict['lineOffset'] == 133
+            assert location_dict['text'] == '# Copyright (c) 2024 Randal Eike\n'
 
-    def test006FindCopyrightNonePy(self):
+    def test006_find_copyright_none_py(self):
         """!
-        @brief Test the parser of findNextCopyrightMsg() in py file, no copyright message
+        @brief Test the parser of find_next_copyright_msg() in py file, no copyright message
         """
-        testFilePath = os.path.join(testFileBaseDir, "testfile_nomsg.py")
-        with open(testFilePath, "rt", encoding="utf-8") as testFile:
-            tstFinder = CopyrightFinder()
-            copyrightFound, locationDict = tstFinder.findNextCopyrightMsg(testFile, 0, None)
-            assert not copyrightFound
-            assert locationDict is None
+        testfile_path = os.path.join(TEST_FILE_BASE_DIR, "testfile_nomsg.py")
+        with open(testfile_path, "rt", encoding="utf-8") as testfile:
+            test_finder = CopyrightFinder()
+            copyright_found, location_dict = test_finder.find_next_copyright_msg(testfile, 0, None)
+            assert not copyright_found
+            assert location_dict is None
 
-    def test007FindCopyrightAbortBeforeEndPy(self):
+    def test007_find_copyright_abort_before_end_py(self):
         """!
-        @brief Test the parser of findNextCopyrightMsg() in py file, abort search before end of file
+        @brief Test the parser of find_next_copyright_msg() in py file,
+               abort search before end of file
         """
-        testFilePath = os.path.join(testFileBaseDir, "testfile.py")
-        with open(testFilePath, "rt", encoding="utf-8") as testFile:
-            tstFinder = CopyrightFinder()
-            copyrightFound, locationDict = tstFinder.findNextCopyrightMsg(testFile, 0, 200)
-            assert copyrightFound
-            assert locationDict['lineOffset'] == 133
-            assert locationDict['text'] == '# Copyright (c) 2024 Randal Eike\n'
+        testfile_path = os.path.join(TEST_FILE_BASE_DIR, "testfile.py")
+        with open(testfile_path, "rt", encoding="utf-8") as testfile:
+            test_finder = CopyrightFinder()
+            copyright_found, location_dict = test_finder.find_next_copyright_msg(testfile, 0, 200)
+            assert copyright_found
+            assert location_dict['lineOffset'] == 133
+            assert location_dict['text'] == '# Copyright (c) 2024 Randal Eike\n'
 
-    def test008FindCopyrightNoneAndAbortPy(self):
+    def test008_find_copyright_none_and_abort_py(self):
         """!
-        @brief Test the parser of findNextCopyrightMsg() in py file, no copyright message, abort search before end of file
+        @brief Test the parser of find_next_copyright_msg() in py file, no copyright message,
+               abort search before end of file
         """
-        testFilePath = os.path.join(testFileBaseDir, "testfile_nomsg.py")
-        with open(testFilePath, "rt", encoding="utf-8") as testFile:
-            tstFinder = CopyrightFinder()
-            copyrightFound, locationDict = tstFinder.findNextCopyrightMsg(testFile, 0, 400)
-            assert not copyrightFound
-            assert locationDict is None
+        testfile_path = os.path.join(TEST_FILE_BASE_DIR, "testfile_nomsg.py")
+        with open(testfile_path, "rt", encoding="utf-8") as testfile:
+            test_finder = CopyrightFinder()
+            copyright_found, location_dict = test_finder.find_next_copyright_msg(testfile, 0, 400)
+            assert not copyright_found
+            assert location_dict is None
 
-    def test009FindCopyrightMacroPy(self):
+    def test009_find_copyright_macro_py(self):
         """!
-        @brief Test the parser of findCopyrightMsg() in py file
+        @brief Test the parser of find_copyright_msg() in py file
         """
-        testFilePath = os.path.join(testFileBaseDir, "testfile.py")
-        with open(testFilePath, "rt", encoding="utf-8") as testFile:
-            tstFinder = CopyrightFinder()
-            copyrightFound, locationDict = tstFinder.findCopyrightMsg(testFile)
-            assert copyrightFound
-            assert locationDict['lineOffset'] == 133
-            assert locationDict['text'] == '# Copyright (c) 2024 Randal Eike\n'
+        testfile_path = os.path.join(TEST_FILE_BASE_DIR, "testfile.py")
+        with open(testfile_path, "rt", encoding="utf-8") as testfile:
+            test_finder = CopyrightFinder()
+            copyright_found, location_dict = test_finder.find_copyright_msg(testfile)
+            assert copyright_found
+            assert location_dict['lineOffset'] == 133
+            assert location_dict['text'] == '# Copyright (c) 2024 Randal Eike\n'
 
-    def test010FindAllCopyrightNonePy(self):
+    def test010_find_all_copyright_none_py(self):
         """!
-        @brief Test the parser of findAllCopyrightMsg() in py file, no copyright message,
+        @brief Test the parser of find_all_copyright_msg() in py file, no copyright message,
         """
-        testFilePath = os.path.join(testFileBaseDir, "testfile_nomsg.py")
-        with open(testFilePath, "rt", encoding="utf-8") as testFile:
-            tstFinder = CopyrightFinder()
-            copyrightFound, locationDictList = tstFinder.findAllCopyrightMsg(testFile)
-            assert not copyrightFound
-            assert locationDictList is None
+        testfile_path = os.path.join(TEST_FILE_BASE_DIR, "testfile_nomsg.py")
+        with open(testfile_path, "rt", encoding="utf-8") as testfile:
+            test_finder = CopyrightFinder()
+            copyright_found, location_dict_list = test_finder.find_all_copyright_msg(testfile)
+            assert not copyright_found
+            assert location_dict_list is None
 
-    def test011FindAllCopyrightC(self):
+    def test011_find_all_copyright_c(self):
         """!
-        @brief Test the parser of findAllCopyrightMsg() in py file, no copyright message,
+        @brief Test the parser of find_all_copyright_msg() in py file, no copyright message,
         """
-        testFilePath = os.path.join(testFileBaseDir, "testfile.c")
-        with open(testFilePath, "rt", encoding="utf-8") as testFile:
-            tstFinder = CopyrightFinder(CopyrightParseEnglish())
-            copyrightFound, locationDictList = tstFinder.findAllCopyrightMsg(testFile)
-            assert copyrightFound
-            assert len(locationDictList) == 1
-            assert locationDictList[0]['lineOffset'] == 3
-            assert locationDictList[0]['text'] == ' Copyright (c) 2022-2024 Randal Eike\n'
+        testfile_path = os.path.join(TEST_FILE_BASE_DIR, "testfile.c")
+        with open(testfile_path, "rt", encoding="utf-8") as testfile:
+            test_finder = CopyrightFinder(CopyrightParseEnglish())
+            copyright_found, location_dict_list = test_finder.find_all_copyright_msg(testfile)
+            assert copyright_found
+            assert len(location_dict_list) == 1
+            assert location_dict_list[0]['lineOffset'] == 3
+            assert location_dict_list[0]['text'] == ' Copyright (c) 2022-2024 Randal Eike\n'

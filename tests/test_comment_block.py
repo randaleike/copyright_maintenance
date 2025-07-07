@@ -1,5 +1,5 @@
 """@package test_programmer_tools
-Unittest for programmer base tools utility
+Unittest for copyright maintenance utility
 """
 
 #==========================================================================
@@ -26,249 +26,237 @@ Unittest for programmer base tools utility
 
 import os
 
-from dir_init import TESTFILEPATH
-from dir_init import pathincsetup
-pathincsetup()
-testFileBaseDir = TESTFILEPATH
+from dir_init import TEST_FILE_PATH
 
 from copyright_maintenance_grocsoftware.comment_block import CommentBlock
 from copyright_maintenance_grocsoftware.comment_block import TextFileCommentBlock
 from copyright_maintenance_grocsoftware.comment_block import CommentParams
 
-class Test01TextCommentBlock:
+TEST_FILE_BASE_DIR = TEST_FILE_PATH
+
+
+"""
+Unit test for the TextFileCommentBlock class
+"""
+def test01_file_comment_block():
     """!
-    @brief Unit test for the TextFileCommentBlock class
+    @brief Test the default parser of is_copyright_line() with valid message
     """
-    def test01FileCommentBlock(self):
-        """!
-        @brief Test the default parser of isCopyrightLine() with valid message
-        """
-        testFilePath = os.path.join(testFileBaseDir, "testfile.txt")
-        with open(testFilePath, "rt", encoding="utf-8") as testFile:
-            blockParser = TextFileCommentBlock(testFile)
-            assert blockParser.findNextCommentBlock()
-            assert blockParser.commentBlkStrtOff == 1
-            assert blockParser.commentBlkEOLOff == 105
+    testfile_path = os.path.join(TEST_FILE_BASE_DIR, "testfile.txt")
+    with open(testfile_path, "rt", encoding="utf-8") as testfile:
+        block_parser = TextFileCommentBlock(testfile)
+        assert block_parser.find_next_comment_block()
+        assert block_parser.comment_blk_strt_off == 1
+        assert block_parser.comment_blk_eol_off == 105
 
-            assert blockParser.findNextCommentBlock()
-            assert blockParser.commentBlkStrtOff == 105
-            assert blockParser.commentBlkEOLOff == 280
+        assert block_parser.find_next_comment_block()
+        assert block_parser.comment_blk_strt_off == 105
+        assert block_parser.comment_blk_eol_off == 280
 
-            assert blockParser.findNextCommentBlock()
-            assert blockParser.commentBlkStrtOff == 280
-            assert blockParser.commentBlkEOLOff == 314
+        assert block_parser.find_next_comment_block()
+        assert block_parser.comment_blk_strt_off == 280
+        assert block_parser.comment_blk_eol_off == 314
 
-            assert not blockParser.findNextCommentBlock()
+        assert not block_parser.find_next_comment_block()
 
-    def test02EmptyFileCommentBlock(self):
-        """!
-        @brief Test the default parser of isCopyrightLine() with valid message
-        """
-        testFilePath = os.path.join(testFileBaseDir, "testfile2.txt")
-        with open(testFilePath, "rt", encoding="utf-8") as testFile:
-            blockParser = TextFileCommentBlock(testFile)
-            assert not blockParser.findNextCommentBlock()
-
-class Test02CommentBlock:
+def test02_empty_file_comment_block():
     """!
-    @brief Unit test for the TextFileCommentBlock class
+    @brief Test the default parser of is_copyright_line() with valid message
     """
-    def testCommentBlockId(self):
-        """!
-        @brief Test that static getCommentMarkers function returns
-               the correct data for the file type
-        """
-        commentMarkers = CommentParams.getCommentMarkers("testfile.c")
-        assert commentMarkers == CommentParams.commentBlockDelim['.c']
+    testfile_path = os.path.join(TEST_FILE_BASE_DIR, "testfile2.txt")
+    with open(testfile_path, "rt", encoding="utf-8") as testfile:
+        block_parser = TextFileCommentBlock(testfile)
+        assert not block_parser.find_next_comment_block()
 
-        commentMarkers = CommentParams.getCommentMarkers("testfile.cpp")
-        assert commentMarkers == CommentParams.commentBlockDelim['.cpp']
+# Unit test for the TextFileCommentBlock class
 
-        commentMarkers = CommentParams.getCommentMarkers("testfile.h")
-        assert commentMarkers == CommentParams.commentBlockDelim['.h']
-
-        commentMarkers = CommentParams.getCommentMarkers("testfile.hpp")
-        assert commentMarkers == CommentParams.commentBlockDelim['.hpp']
-
-        commentMarkers = CommentParams.getCommentMarkers("testfile.py")
-        assert commentMarkers == CommentParams.commentBlockDelim['.py']
-
-        commentMarkers = CommentParams.getCommentMarkers("testfile.sh")
-        assert commentMarkers == CommentParams.commentBlockDelim['.sh']
-
-        commentMarkers = CommentParams.getCommentMarkers("testfile.bat")
-        assert commentMarkers == CommentParams.commentBlockDelim['.bat']
-
-        commentMarkers = CommentParams.getCommentMarkers("testfile.")
-        assert commentMarkers is None
-
-
-class Test03CCommentBlock:
+def test_comment_blockid():
     """!
-    @brief Unit test for the CommentBlock class c, cpp, h, hpp file case
+    @brief Test that static get_comment_markers function returns
+            the correct data for the file type
     """
-    def testCFileCommentBlock(self):
-        """!
-        @brief Test all comment blocks are found in the c test file
-        """
-        testFilePath = os.path.join(testFileBaseDir, "testfile.c")
-        with open(testFilePath, "rt", encoding="utf-8") as testFile:
-            commentMarkers = CommentParams.getCommentMarkers("testfile.c")
-            blockParser = CommentBlock(testFile, commentMarkers)
-            assert blockParser.findNextCommentBlock()
-            assert blockParser.commentBlkStrtOff == 0
-            assert blockParser.commentBlkEOLOff == 1082
+    comment_markers = CommentParams.get_comment_markers("testfile.c")
+    assert comment_markers == CommentParams.commentBlockDelim['.c']
 
-            assert blockParser.findNextCommentBlock()
-            assert blockParser.commentBlkStrtOff == 1083
-            assert blockParser.commentBlkEOLOff == 1148
+    comment_markers = CommentParams.get_comment_markers("testfile.cpp")
+    assert comment_markers == CommentParams.commentBlockDelim['.cpp']
 
-            assert blockParser.findNextCommentBlock()
-            assert blockParser.commentBlkStrtOff == 1169
-            assert blockParser.commentBlkEOLOff == 1274
+    comment_markers = CommentParams.get_comment_markers("testfile.h")
+    assert comment_markers == CommentParams.commentBlockDelim['.h']
 
-            assert blockParser.findNextCommentBlock()
-            assert blockParser.commentBlkStrtOff == 1432
-            assert blockParser.commentBlkEOLOff == 1650
+    comment_markers = CommentParams.get_comment_markers("testfile.hpp")
+    assert comment_markers == CommentParams.commentBlockDelim['.hpp']
 
-            assert not blockParser.findNextCommentBlock()
+    comment_markers = CommentParams.get_comment_markers("testfile.py")
+    assert comment_markers == CommentParams.commentBlockDelim['.py']
 
-    def testHFileCommentBlock(self):
-        """!
-        @brief Test all comment blocks are found in the h test file
-        """
-        testFilePath = os.path.join(testFileBaseDir, "testfile.h")
-        with open(testFilePath, "rt", encoding="utf-8") as testFile:
-            commentMarkers = CommentParams.getCommentMarkers("testfile.h")
-            blockParser = CommentBlock(testFile, commentMarkers)
-            assert blockParser.findNextCommentBlock()
-            assert blockParser.commentBlkStrtOff == 0
-            assert blockParser.commentBlkEOLOff == 1082
+    comment_markers = CommentParams.get_comment_markers("testfile.sh")
+    assert comment_markers == CommentParams.commentBlockDelim['.sh']
 
-            assert blockParser.findNextCommentBlock()
-            assert blockParser.commentBlkStrtOff == 1083
-            assert blockParser.commentBlkEOLOff == 1148
+    comment_markers = CommentParams.get_comment_markers("testfile.bat")
+    assert comment_markers == CommentParams.commentBlockDelim['.bat']
 
-            assert blockParser.findNextCommentBlock()
-            assert blockParser.commentBlkStrtOff == 1169
-            assert blockParser.commentBlkEOLOff == 1274
+    comment_markers = CommentParams.get_comment_markers("testfile.")
+    assert comment_markers is None
 
-            assert blockParser.findNextCommentBlock()
-            assert blockParser.commentBlkStrtOff == 1310
-            assert blockParser.commentBlkEOLOff == 1528
+# Unit test for the CommentBlock class c, cpp, h, hpp file case
 
-            assert not blockParser.findNextCommentBlock()
-
-    def testCppFileCommentBlock(self):
-        """!
-        @brief Test all comment blocks are found in the cpp test file
-        """
-        testFilePath = os.path.join(testFileBaseDir, "testfile.cpp")
-        with open(testFilePath, "rt", encoding="utf-8") as testFile:
-            commentMarkers = CommentParams.getCommentMarkers("testfile.cpp")
-            blockParser = CommentBlock(testFile, commentMarkers)
-            assert blockParser.findNextCommentBlock()
-            assert blockParser.commentBlkStrtOff == 0
-            assert blockParser.commentBlkEOLOff == 1082
-
-            assert blockParser.findNextCommentBlock()
-            assert blockParser.commentBlkStrtOff == 1083
-            assert blockParser.commentBlkEOLOff == 1150
-
-            assert blockParser.findNextCommentBlock()
-            assert blockParser.commentBlkStrtOff == 1258
-            assert blockParser.commentBlkEOLOff == 1363
-
-            assert blockParser.findNextCommentBlock()
-            assert blockParser.commentBlkStrtOff == 1533
-            assert blockParser.commentBlkEOLOff == 1751
-
-            assert not blockParser.findNextCommentBlock()
-
-    def testHppFileCommentBlock(self):
-        """!
-        @brief Test all comment blocks are found in the hpp test file
-        """
-        testFilePath = os.path.join(testFileBaseDir, "testfile.hpp")
-        with open(testFilePath, "rt", encoding="utf-8") as testFile:
-            commentMarkers = CommentParams.getCommentMarkers("testfile.hpp")
-            blockParser = CommentBlock(testFile, commentMarkers)
-            assert blockParser.findNextCommentBlock()
-            assert blockParser.commentBlkStrtOff == 0
-            assert blockParser.commentBlkEOLOff == 1082
-
-            assert blockParser.findNextCommentBlock()
-            assert blockParser.commentBlkStrtOff == 1083
-            assert blockParser.commentBlkEOLOff == 1150
-
-            assert not blockParser.findNextCommentBlock()
-
-class Test04PythonCommentBlock:
+def test_c_file_comment_block():
     """!
-    @brief Unit test for the CommentBlock class python file case
+    @brief Test all comment blocks are found in the c test file
     """
-    def testFileCommentBlock(self):
-        """!
-        @brief Test all comment blocks are found in the python test file
-        """
-        testFilePath = os.path.join(testFileBaseDir, "testfile.py")
-        with open(testFilePath, "rt", encoding="utf-8") as testFile:
-            commentMarkers = CommentParams.getCommentMarkers("testfile.py")
-            blockParser = CommentBlock(testFile, commentMarkers)
-            assert blockParser.findNextCommentBlock()
-            assert blockParser.commentBlkStrtOff == 0
-            assert blockParser.commentBlkEOLOff == 56
+    testfile_path = os.path.join(TEST_FILE_BASE_DIR, "testfile.c")
+    with open(testfile_path, "rt", encoding="utf-8") as testfile:
+        comment_markers = CommentParams.get_comment_markers("testfile.c")
+        block_parser = CommentBlock(testfile, comment_markers)
+        assert block_parser.find_next_comment_block()
+        assert block_parser.comment_blk_strt_off == 0
+        assert block_parser.comment_blk_eol_off == 1082
 
-            assert blockParser.findNextCommentBlock()
-            assert blockParser.commentBlkStrtOff == 57
-            assert blockParser.commentBlkEOLOff == 1299
+        assert block_parser.find_next_comment_block()
+        assert block_parser.comment_blk_strt_off == 1083
+        assert block_parser.comment_blk_eol_off == 1148
 
-            assert not blockParser.findNextCommentBlock()
+        assert block_parser.find_next_comment_block()
+        assert block_parser.comment_blk_strt_off == 1169
+        assert block_parser.comment_blk_eol_off == 1274
 
-class Test05ShellCommentBlock:
+        assert block_parser.find_next_comment_block()
+        assert block_parser.comment_blk_strt_off == 1432
+        assert block_parser.comment_blk_eol_off == 1650
+
+        assert not block_parser.find_next_comment_block()
+
+def test_h_file_comment_block():
     """!
-    @brief Unit test for the CommentBlock class bash shell file case
+    @brief Test all comment blocks are found in the h test file
     """
-    def testFileCommentBlock(self):
-        """!
-        @brief Test all comment blocks are found in the bash shell test file
-        """
-        testFilePath = os.path.join(testFileBaseDir, "testfile.sh")
-        with open(testFilePath, "rt", encoding="utf-8") as testFile:
-            commentMarkers = CommentParams.getCommentMarkers("testfile.sh")
-            blockParser = CommentBlock(testFile, commentMarkers)
-            assert blockParser.findNextCommentBlock()
-            assert blockParser.commentBlkStrtOff == 13
-            assert blockParser.commentBlkEOLOff == 39
+    testfile_path = os.path.join(TEST_FILE_BASE_DIR, "testfile.h")
+    with open(testfile_path, "rt", encoding="utf-8") as testfile:
+        comment_markers = CommentParams.get_comment_markers("testfile.h")
+        block_parser = CommentBlock(testfile, comment_markers)
+        assert block_parser.find_next_comment_block()
+        assert block_parser.comment_blk_strt_off == 0
+        assert block_parser.comment_blk_eol_off == 1082
 
-            assert blockParser.findNextCommentBlock()
-            assert blockParser.commentBlkStrtOff == 40
-            assert blockParser.commentBlkEOLOff == 60
+        assert block_parser.find_next_comment_block()
+        assert block_parser.comment_blk_strt_off == 1083
+        assert block_parser.comment_blk_eol_off == 1148
 
-            assert blockParser.findNextCommentBlock()
-            assert blockParser.commentBlkStrtOff == 102
-            assert blockParser.commentBlkEOLOff == 154
+        assert block_parser.find_next_comment_block()
+        assert block_parser.comment_blk_strt_off == 1169
+        assert block_parser.comment_blk_eol_off == 1274
 
-            assert not blockParser.findNextCommentBlock()
+        assert block_parser.find_next_comment_block()
+        assert block_parser.comment_blk_strt_off == 1310
+        assert block_parser.comment_blk_eol_off == 1528
 
-class Test06BatCommentBlock:
+        assert not block_parser.find_next_comment_block()
+
+def test_cpp_file_comment_block():
     """!
-    @brief Unit test for the CommentBlock class batch file case
+    @brief Test all comment blocks are found in the cpp test file
     """
-    def testFileCommentBlock(self):
-        """!
-        @brief Test all comment blocks are found in the bat test file
-        """
-        testFilePath = os.path.join(testFileBaseDir, "testfile.bat")
-        with open(testFilePath, "rt", encoding="utf-8") as testFile:
-            commentMarkers = CommentParams.getCommentMarkers("testfile.bat")
-            blockParser = CommentBlock(testFile, commentMarkers)
-            assert blockParser.findNextCommentBlock()
-            assert blockParser.commentBlkStrtOff == 0
-            assert blockParser.commentBlkEOLOff == 38
+    testfile_path = os.path.join(TEST_FILE_BASE_DIR, "testfile.cpp")
+    with open(testfile_path, "rt", encoding="utf-8") as testfile:
+        comment_markers = CommentParams.get_comment_markers("testfile.cpp")
+        block_parser = CommentBlock(testfile, comment_markers)
+        assert block_parser.find_next_comment_block()
+        assert block_parser.comment_blk_strt_off == 0
+        assert block_parser.comment_blk_eol_off == 1082
 
-            assert blockParser.findNextCommentBlock()
-            assert blockParser.commentBlkStrtOff == 112
-            assert blockParser.commentBlkEOLOff == 160
+        assert block_parser.find_next_comment_block()
+        assert block_parser.comment_blk_strt_off == 1083
+        assert block_parser.comment_blk_eol_off == 1150
 
-            assert not blockParser.findNextCommentBlock()
+        assert block_parser.find_next_comment_block()
+        assert block_parser.comment_blk_strt_off == 1258
+        assert block_parser.comment_blk_eol_off == 1363
+
+        assert block_parser.find_next_comment_block()
+        assert block_parser.comment_blk_strt_off == 1533
+        assert block_parser.comment_blk_eol_off == 1751
+
+        assert not block_parser.find_next_comment_block()
+
+def test_hpp_file_comment_block():
+    """!
+    @brief Test all comment blocks are found in the hpp test file
+    """
+    testfile_path = os.path.join(TEST_FILE_BASE_DIR, "testfile.hpp")
+    with open(testfile_path, "rt", encoding="utf-8") as testfile:
+        comment_markers = CommentParams.get_comment_markers("testfile.hpp")
+        block_parser = CommentBlock(testfile, comment_markers)
+        assert block_parser.find_next_comment_block()
+        assert block_parser.comment_blk_strt_off == 0
+        assert block_parser.comment_blk_eol_off == 1082
+
+        assert block_parser.find_next_comment_block()
+        assert block_parser.comment_blk_strt_off == 1083
+        assert block_parser.comment_blk_eol_off == 1150
+
+        assert not block_parser.find_next_comment_block()
+
+# Unit test for the CommentBlock class python file case
+
+def test_file_comment_block():
+    """!
+    @brief Test all comment blocks are found in the python test file
+    """
+    testfile_path = os.path.join(TEST_FILE_BASE_DIR, "testfile.py")
+    with open(testfile_path, "rt", encoding="utf-8") as testfile:
+        comment_markers = CommentParams.get_comment_markers("testfile.py")
+        block_parser = CommentBlock(testfile, comment_markers)
+        assert block_parser.find_next_comment_block()
+        assert block_parser.comment_blk_strt_off == 0
+        assert block_parser.comment_blk_eol_off == 56
+
+        assert block_parser.find_next_comment_block()
+        assert block_parser.comment_blk_strt_off == 57
+        assert block_parser.comment_blk_eol_off == 1299
+
+        assert not block_parser.find_next_comment_block()
+
+# Unit test for the CommentBlock class bash shell file case
+
+def test_sh_file_comment_block():
+    """!
+    @brief Test all comment blocks are found in the bash shell test file
+    """
+    testfile_path = os.path.join(TEST_FILE_BASE_DIR, "testfile.sh")
+    with open(testfile_path, "rt", encoding="utf-8") as testfile:
+        comment_markers = CommentParams.get_comment_markers("testfile.sh")
+        block_parser = CommentBlock(testfile, comment_markers)
+        assert block_parser.find_next_comment_block()
+        assert block_parser.comment_blk_strt_off == 13
+        assert block_parser.comment_blk_eol_off == 39
+
+        assert block_parser.find_next_comment_block()
+        assert block_parser.comment_blk_strt_off == 40
+        assert block_parser.comment_blk_eol_off == 60
+
+        assert block_parser.find_next_comment_block()
+        assert block_parser.comment_blk_strt_off == 102
+        assert block_parser.comment_blk_eol_off == 154
+
+        assert not block_parser.find_next_comment_block()
+
+# Unit test for the CommentBlock class batch file case
+
+def test_bat_file_comment_block():
+    """!
+    @brief Test all comment blocks are found in the bat test file
+    """
+    testfile_path = os.path.join(TEST_FILE_BASE_DIR, "testfile.bat")
+    with open(testfile_path, "rt", encoding="utf-8") as testfile:
+        comment_markers = CommentParams.get_comment_markers("testfile.bat")
+        block_parser = CommentBlock(testfile, comment_markers)
+        assert block_parser.find_next_comment_block()
+        assert block_parser.comment_blk_strt_off == 0
+        assert block_parser.comment_blk_eol_off == 38
+
+        assert block_parser.find_next_comment_block()
+        assert block_parser.comment_blk_strt_off == 112
+        assert block_parser.comment_blk_eol_off == 160
+
+        assert not block_parser.find_next_comment_block()

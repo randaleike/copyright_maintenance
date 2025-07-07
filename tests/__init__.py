@@ -1,10 +1,9 @@
 """@package test_programmer_tools
 Unittest for programmer base tools utility
-
 """
 
 #==========================================================================
-# Copyright (c) 2024-2025 Randal Eike
+# Copyright (c) 2025 Randal Eike
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of self software and associated documentation files (the "Software"),
@@ -27,13 +26,7 @@ Unittest for programmer base tools utility
 
 import sys
 
-def pathincsetup():
-    """!
-    @brief Setup the sys.path includes
-    """
-
-    # pylint: disable=locally-disabled, multiple-statements, import-error, wrong-import-position
-    sys.path.insert(0, './src')
-    # pylint: enable=import-error, wrong-import-position
-
-TEST_FILE_PATH = './tests/test_data'
+# pylint: disable=locally-disabled, multiple-statements, import-error, wrong-import-position
+sys.path.insert(0, './src')
+sys.path.insert(1, './tests')
+# pylint: enable=import-error, wrong-import-position

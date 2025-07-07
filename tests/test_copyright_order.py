@@ -1,8 +1,6 @@
 """@package test_programmer_tools
-Unittest for programmer base tools utility
-
+Unittest for copyright maintenance utility
 """
-
 #==========================================================================
 # Copyright (c) 2024 Randal Eike
 #
@@ -25,318 +23,339 @@ Unittest for programmer base tools utility
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #==========================================================================
 
-
-
-from dir_init import pathincsetup
-pathincsetup()
-
 from copyright_maintenance_grocsoftware.copyright_tools import CopyrightParseOrder1
 from copyright_maintenance_grocsoftware.copyright_tools import CopyrightParseOrder2
 
-class TestClass04CopyrightParserOrder1:
+# pylint: disable=protected-access
+
+# Unit test for the copyright parser order1 class
+def setup_order1():
     """!
-    @brief Unit test for the copyright parser order1 class
+    @brief TestClass04CopyrightParserOrder1 test setup
     """
-    def setup_method(self):
-        self.tstParser = CopyrightParseOrder1(copyrightSearchMsg = r'Copyright|COPYRIGHT|copyright',
-                                              copyrightSearchTag = r'\([cC]\)',
-                                              copyrightSearchDate = r'(\d{4})',
-                                              copyrightOwnerSpec = r'[a-zA-Z0-9,\./\- @]',
-                                              useUnicode = False)
+    test_parser = CopyrightParseOrder1(copyright_search_msg = r'Copyright|COPYRIGHT|copyright',
+                                       copyright_search_tag = r'\([cC]\)',
+                                       copyright_search_date = r'(\d{4})',
+                                       copyright_owner_spec = r'[a-zA-Z0-9,\./\- @]',
+                                       use_unicode = False)
+    return test_parser
 
-    def test001IsCopyright(self):
-        """!
-        @brief Test the isCopyrightLine method
-        """
-        assert self.tstParser.isCopyrightLine(" Copyright (c) 2024 Me")
-        assert self.tstParser.isCopyrightLine(" copyright (c)  2024 Me")
-        assert self.tstParser.isCopyrightLine(" COPYRIGHT (c)  2024  Me")
-        assert self.tstParser.isCopyrightLine(" Copyright  (c)   2024-2025   foo")
-        assert self.tstParser.isCopyrightLine(" copyright (c) 2024-2025 you")
-        assert self.tstParser.isCopyrightLine(" COPYRIGHT (c) 2024,2025 You")
-
-        assert self.tstParser.isCopyrightLine(" Copyright (C) 2024 her")
-        assert self.tstParser.isCopyrightLine(" copyright (C) 2024 them")
-        assert self.tstParser.isCopyrightLine(" COPYRIGHT (C) 2024 other")
-        assert self.tstParser.isCopyrightLine(" COPYRIGHT (C) 2024,2025 some body")
-
-        assert self.tstParser.isCopyrightLine("* COPYRIGHT (C) 2024,2025 some body     *")
-
-    def test002IsCopyrightMissingFail(self):
-        """!
-        @brief Test the isCopyrightLine() method, failed for missing components
-        """
-        assert not self.tstParser.isCopyrightLine(" Copy right (c) 2024 Me")
-        assert not self.tstParser.isCopyrightLine(" Copyright (a) 2024 Me")
-        assert not self.tstParser.isCopyrightLine(" Copyright (c) Me")
-        assert not self.tstParser.isCopyrightLine(" Copyright c 2024 Me")
-        assert not self.tstParser.isCopyrightLine(" Random text 2024 Me")
-        assert not self.tstParser.isCopyrightLine(" COPYRIGHT (C) 2024,2025")
-
-    def test003IsCopyrightOrderFail(self):
-        """!
-        @brief Test the isCopyrightLine() method, failed for invalid order
-        """
-        assert not self.tstParser.isCopyrightLine(" (c) Copyright 2024 Me")
-        assert not self.tstParser.isCopyrightLine(" 2024 Copyright (c) Me")
-        assert not self.tstParser.isCopyrightLine(" me Copyright (c) 2024")
-        assert not self.tstParser.isCopyrightLine(" Copyright (c) me 2024")
-        assert not self.tstParser.isCopyrightLine(" Copyright 2022-2024 (c) me")
-
-    def test004ParseMsg(self):
-        """!
-        @brief Test the parseCopyrightMsg() method.
-
-        Basic test as TestClass02CopyrightParserBase does a more complete job
-        of testing the component functiions that this function calls
-        """
-        self.tstParser.parseCopyrightMsg(" Copyright (c) 2024 Me")
-        assert self.tstParser.copyrightTextValid
-        assert self.tstParser.copyrightText == " Copyright (c) 2024 Me"
-        assert self.tstParser.copyrightTextStart == " "
-        assert self.tstParser.copyrightTextMsg == "Copyright"
-        assert self.tstParser.copyrightTextTag == "(c)"
-        assert self.tstParser.copyrightTextOwner == "Me"
-        assert self.tstParser.copyrightTextEol is None
-        assert len(self.tstParser.copyrightYearList) == 1
-
-    def test005ParseMsgWithEol(self):
-        """!
-        @brief Test the parseCopyrightMsg() method.
-
-        Basic test as TestClass02CopyrightParserBase does a more complete job
-        of testing the component functiions that this function calls
-        """
-        self.tstParser.parseCopyrightMsg(" * Copyright (c) 2024 Me                 *")
-        assert self.tstParser.copyrightTextValid
-        assert self.tstParser.copyrightText == " * Copyright (c) 2024 Me                 *"
-        assert self.tstParser.copyrightTextStart == " * "
-        assert self.tstParser.copyrightTextMsg == "Copyright"
-        assert self.tstParser.copyrightTextTag == "(c)"
-        assert self.tstParser.copyrightTextOwner == "Me"
-        assert self.tstParser.copyrightTextEol == "*"
-        assert len(self.tstParser.copyrightYearList) == 1
-
-    def test006CreateMsg(self):
-        """!
-        @brief Test the _createCopyrightMsg() method.
-        """
-        testStr = self.tstParser._createCopyrightMsg("James Kirk", "Copyright", "(c)", 2024, 2024)
-        assert testStr == "Copyright (c) 2024 James Kirk"
-
-        testStr = self.tstParser._createCopyrightMsg("James Kirk", "Copyright", "(c)", 2022, 2024)
-        assert testStr == "Copyright (c) 2022-2024 James Kirk"
-
-        testStr = self.tstParser._createCopyrightMsg("Mr. Spock", "Copyright", "(c)", 2024, None)
-        assert testStr == "Copyright (c) 2024 Mr. Spock"
-
-        testStr = self.tstParser._createCopyrightMsg("Mr. Spock", "Copyright", "(c)", 2023)
-        assert testStr == "Copyright (c) 2023 Mr. Spock"
-
-    def test007BuildNewMsg(self):
-        """!
-        @brief Test the buildNewCopyrightMsg() method.
-        """
-        self.tstParser.parseCopyrightMsg(" * Copyright (c) 2022 James Kirk               *")
-        testStr = self.tstParser.buildNewCopyrightMsg(2024)
-        assert testStr == "Copyright (c) 2024 James Kirk"
-
-        testStr = self.tstParser.buildNewCopyrightMsg(2023, None)
-        assert testStr == "Copyright (c) 2023 James Kirk"
-
-        testStr = self.tstParser.buildNewCopyrightMsg(2023, 2024)
-        assert testStr == "Copyright (c) 2023-2024 James Kirk"
-
-        testStr = self.tstParser.buildNewCopyrightMsg(2024, addStartEnd=True)
-        assert testStr == " * Copyright (c) 2024 James Kirk               *"
-
-        testStr = self.tstParser.buildNewCopyrightMsg(2023, None, True)
-        assert testStr == " * Copyright (c) 2023 James Kirk               *"
-
-        testStr = self.tstParser.buildNewCopyrightMsg(2023, 2024, True)
-        assert testStr == " * Copyright (c) 2023-2024 James Kirk          *"
-
-    def test008BuildNewMsgNoParse(self):
-        """!
-        @brief Test the buildNewCopyrightMsg() method with no parsed data
-        """
-        testStr = self.tstParser.buildNewCopyrightMsg(2024)
-        assert testStr is None
-
-        testStr = self.tstParser.buildNewCopyrightMsg(2023, None)
-        assert testStr is None
-
-        testStr = self.tstParser.buildNewCopyrightMsg(2023, 2024)
-        assert testStr is None
-
-        testStr = self.tstParser.buildNewCopyrightMsg(2024, addStartEnd=True)
-        assert testStr is None
-
-        testStr = self.tstParser.buildNewCopyrightMsg(2023, None, True)
-        assert testStr is None
-
-        testStr = self.tstParser.buildNewCopyrightMsg(2023, 2024, True)
-        assert testStr is None
-
-class TestClass05CopyrightParserOrder2:
+def test1001_is_copyright_line():
     """!
-    @brief Unit test for the copyright parser order1 class
+    @brief Test the is_copyright_line method
     """
-    def setup_method(self):
-        self.tstParser = CopyrightParseOrder2(copyrightSearchMsg = r'Copyright|COPYRIGHT|copyright',
-                                              copyrightSearchTag = r'\([cC]\)',
-                                              copyrightSearchDate = r'(\d{4})',
-                                              copyrightOwnerSpec = r'[a-zA-Z0-9,\./\- @]',
-                                              useUnicode = False)
+    test_parser = setup_order1()
+    assert test_parser.is_copyright_line(" Copyright (c) 2024 Me")
+    assert test_parser.is_copyright_line(" copyright (c)  2024 Me")
+    assert test_parser.is_copyright_line(" COPYRIGHT (c)  2024  Me")
+    assert test_parser.is_copyright_line(" Copyright  (c)   2024-2025   foo")
+    assert test_parser.is_copyright_line(" copyright (c) 2024-2025 you")
+    assert test_parser.is_copyright_line(" COPYRIGHT (c) 2024,2025 You")
 
-    def test001IsCopyright(self):
-        """!
-        @brief Test the isCopyrightLine method
-        """
-        assert self.tstParser.isCopyrightLine(" Me Copyright (c) 2024")
-        assert self.tstParser.isCopyrightLine(" Me copyright (c)  2024")
-        assert self.tstParser.isCopyrightLine(" ME COPYRIGHT (c)  2024")
-        assert self.tstParser.isCopyrightLine(" foo  Copyright  (c)   2024-2025")
-        assert self.tstParser.isCopyrightLine(" you copyright (c) 2024-2025")
-        assert self.tstParser.isCopyrightLine(" You COPYRIGHT (c) 2024,2025")
+    assert test_parser.is_copyright_line(" Copyright (C) 2024 her")
+    assert test_parser.is_copyright_line(" copyright (C) 2024 them")
+    assert test_parser.is_copyright_line(" COPYRIGHT (C) 2024 other")
+    assert test_parser.is_copyright_line(" COPYRIGHT (C) 2024,2025 some body")
 
-        assert self.tstParser.isCopyrightLine(" her Copyright (C) 2024")
-        assert self.tstParser.isCopyrightLine(" them copyright (C) 2024")
-        assert self.tstParser.isCopyrightLine(" other COPYRIGHT (C) 2024")
-        assert self.tstParser.isCopyrightLine(" some body COPYRIGHT (C) 2024,2025")
+    assert test_parser.is_copyright_line("* COPYRIGHT (C) 2024,2025 some body     *")
 
-        assert self.tstParser.isCopyrightLine("* some body COPYRIGHT (C) 2024,2025      *")
+def test1002_is_copyright_line_missing_component_fail():
+    """!
+    @brief Test the is_copyright_line() method, failed for missing components
+    """
+    test_parser = setup_order1()
+    assert not test_parser.is_copyright_line(" Copy right (c) 2024 Me")
+    assert not test_parser.is_copyright_line(" Copyright (a) 2024 Me")
+    assert not test_parser.is_copyright_line(" Copyright (c) Me")
+    assert not test_parser.is_copyright_line(" Copyright c 2024 Me")
+    assert not test_parser.is_copyright_line(" Random text 2024 Me")
+    assert not test_parser.is_copyright_line(" COPYRIGHT (C) 2024,2025")
 
-    def test002IsCopyrightMissingFail(self):
-        """!
-        @brief Test the isCopyrightLine() method, failed for missing components
-        """
-        assert not self.tstParser.isCopyrightLine(" Me Copy right (c) 2024")
-        assert not self.tstParser.isCopyrightLine(" Me Copyright (a) 2024")
-        assert not self.tstParser.isCopyrightLine(" Me Copyright (c)")
-        assert not self.tstParser.isCopyrightLine(" Me Copyright c 2024")
-        assert not self.tstParser.isCopyrightLine(" Me Random text 2024")
-        assert not self.tstParser.isCopyrightLine(" COPYRIGHT (C) 2024,2025")
+def test1003_is_copyright_line_order_fail():
+    """!
+    @brief Test the is_copyright_line() method, failed for invalid order
+    """
+    test_parser = setup_order1()
+    assert not test_parser.is_copyright_line(" (c) Copyright 2024 Me")
+    assert not test_parser.is_copyright_line(" 2024 Copyright (c) Me")
+    assert not test_parser.is_copyright_line(" me Copyright (c) 2024")
+    assert not test_parser.is_copyright_line(" Copyright (c) me 2024")
+    assert not test_parser.is_copyright_line(" Copyright 2022-2024 (c) me")
 
-    def test003IsCopyrightOrderFail(self):
-        """!
-        @brief Test the isCopyrightLine() method, failed for invalid order
-        """
-        assert not self.tstParser.isCopyrightLine(" (c) Copyright 2024 Me")
-        assert not self.tstParser.isCopyrightLine(" 2024 Copyright (c) Me")
-        assert not self.tstParser.isCopyrightLine(" Copyright (c) 2024 Me")
-        assert not self.tstParser.isCopyrightLine(" Copyright (c) me 2024")
-        assert not self.tstParser.isCopyrightLine(" Me Copyright 2022-2024 (c)")
+def test1004_parse_copyright_msg():
+    """!
+    @brief Test the parse_copyright_msg() method.
 
-    def test004ParseMsg(self):
-        """!
-        @brief Test the parseCopyrightMsg() method.
+    Basic test as TestClass02CopyrightParserBase does a more complete job
+    of testing the component functiions that this function calls
+    """
+    test_parser = setup_order1()
+    test_parser.parse_copyright_msg(" Copyright (c) 2024 Me")
+    assert test_parser.copyright_text_valid
+    assert test_parser.copyright_text == " Copyright (c) 2024 Me"
+    assert test_parser.copyright_text_start == " "
+    assert test_parser.copyright_text_msg == "Copyright"
+    assert test_parser.copyright_text_tag == "(c)"
+    assert test_parser.copyright_text_owner == "Me"
+    assert test_parser.copyright_text_eol is None
+    assert len(test_parser.copyright_year_list) == 1
 
-        Basic test as TestClass02CopyrightParserBase does a more complete job
-        of testing the component functiions that this function calls
-        """
-        self.tstParser.parseCopyrightMsg(" Me Copyright (c) 2024")
-        assert self.tstParser.copyrightTextValid
-        assert self.tstParser.copyrightText == " Me Copyright (c) 2024"
-        assert self.tstParser.copyrightTextStart == " "
-        assert self.tstParser.copyrightTextMsg == "Copyright"
-        assert self.tstParser.copyrightTextTag == "(c)"
-        assert self.tstParser.copyrightTextOwner == "Me"
-        assert self.tstParser.copyrightTextEol is None
-        assert len(self.tstParser.copyrightYearList) == 1
+def test1005_parse_copyright_msg_with_eol():
+    """!
+    @brief Test the parse_copyright_msg() method.
 
-    def test005ParseMsgWithEol(self):
-        """!
-        @brief Test the parseCopyrightMsg() method.
+    Basic test as TestClass02CopyrightParserBase does a more complete job
+    of testing the component functiions that this function calls
+    """
+    test_parser = setup_order1()
+    test_parser.parse_copyright_msg(" * Copyright (c) 2024 Me                 *")
+    assert test_parser.copyright_text_valid
+    assert test_parser.copyright_text == " * Copyright (c) 2024 Me                 *"
+    assert test_parser.copyright_text_start == " * "
+    assert test_parser.copyright_text_msg == "Copyright"
+    assert test_parser.copyright_text_tag == "(c)"
+    assert test_parser.copyright_text_owner == "Me"
+    assert test_parser.copyright_text_eol == "*"
+    assert len(test_parser.copyright_year_list) == 1
 
-        Basic test as TestClass02CopyrightParserBase does a more complete job
-        of testing the component functiions that this function calls
-        """
-        self.tstParser.parseCopyrightMsg(" * Me Copyright (c) 2024                 *")
-        assert self.tstParser.copyrightTextValid
-        assert self.tstParser.copyrightText == " * Me Copyright (c) 2024                 *"
-        assert self.tstParser.copyrightTextStart == " * "
-        assert self.tstParser.copyrightTextMsg == "Copyright"
-        assert self.tstParser.copyrightTextTag == "(c)"
-        assert self.tstParser.copyrightTextOwner == "Me"
-        assert self.tstParser.copyrightTextEol == "*"
-        assert len(self.tstParser.copyrightYearList) == 1
+def test1006_create_copyright_msg():
+    """!
+    @brief Test the _create_copyright_msg() method.
+    """
+    test_parser = setup_order1()
+    return_str = test_parser._create_copyright_msg("James Kirk", "Copyright", "(c)", 2024, 2024)
+    assert return_str == "Copyright (c) 2024 James Kirk"
 
-    def test006ParseMsgWithError(self):
-        """!
-        @brief Test the parseCopyrightMsg() method.
+    return_str = test_parser._create_copyright_msg("James Kirk", "Copyright", "(c)", 2022, 2024)
+    assert return_str == "Copyright (c) 2022-2024 James Kirk"
 
-        Basic test as TestClass02CopyrightParserBase does a more complete job
-        of testing the component functiions that this function calls
-        """
-        self.tstParser.parseCopyrightMsg(" * Me (c) 2024                 *")
-        assert not self.tstParser.copyrightTextValid
-        assert self.tstParser.copyrightText == ""
-        assert self.tstParser.copyrightTextStart == ""
+    return_str = test_parser._create_copyright_msg("Mr. Spock", "Copyright", "(c)", 2024, None)
+    assert return_str == "Copyright (c) 2024 Mr. Spock"
 
-        assert self.tstParser.copyrightTextMsg is None
-        assert self.tstParser.copyrightTextTag == "(c)"
-        assert self.tstParser.copyrightTextOwner is None
-        assert self.tstParser.copyrightTextEol == "*"
-        assert len(self.tstParser.copyrightYearList) == 1
+    return_str = test_parser._create_copyright_msg("Mr. Spock", "Copyright", "(c)", 2023)
+    assert return_str == "Copyright (c) 2023 Mr. Spock"
 
-    def test007CreateMsg(self):
-        """!
-        @brief Test the _createCopyrightMsg() method.
-        """
-        testStr = self.tstParser._createCopyrightMsg("James Kirk", "Copyright", "(c)", 2024, 2024)
-        assert testStr == "James Kirk Copyright (c) 2024"
+def test1007_build_new_msg():
+    """!
+    @brief Test the build_new_copyright_msg() method.
+    """
+    test_parser = setup_order1()
+    test_parser.parse_copyright_msg(" * Copyright (c) 2022 James Kirk               *")
+    return_str = test_parser.build_new_copyright_msg(2024)
+    assert return_str == "Copyright (c) 2024 James Kirk"
 
-        testStr = self.tstParser._createCopyrightMsg("James Kirk", "Copyright", "(c)", 2022, 2024)
-        assert testStr == "James Kirk Copyright (c) 2022-2024"
+    return_str = test_parser.build_new_copyright_msg(2023, None)
+    assert return_str == "Copyright (c) 2023 James Kirk"
 
-        testStr = self.tstParser._createCopyrightMsg("Mr. Spock", "Copyright", "(c)", 2024, None)
-        assert testStr == "Mr. Spock Copyright (c) 2024"
+    return_str = test_parser.build_new_copyright_msg(2023, 2024)
+    assert return_str == "Copyright (c) 2023-2024 James Kirk"
 
-        testStr = self.tstParser._createCopyrightMsg("Mr. Spock", "Copyright", "(c)", 2023)
-        assert testStr == "Mr. Spock Copyright (c) 2023"
+    return_str = test_parser.build_new_copyright_msg(2024, add_start_end=True)
+    assert return_str == " * Copyright (c) 2024 James Kirk               *"
 
-    def test008BuildNewMsg(self):
-        """!
-        @brief Test the buildNewCopyrightMsg() method.
-        """
-        self.tstParser.parseCopyrightMsg(" * James Kirk Copyright (c) 2022               *")
-        testStr = self.tstParser.buildNewCopyrightMsg(2024)
-        assert testStr == "James Kirk Copyright (c) 2024"
+    return_str = test_parser.build_new_copyright_msg(2023, None, True)
+    assert return_str == " * Copyright (c) 2023 James Kirk               *"
 
-        testStr = self.tstParser.buildNewCopyrightMsg(2023, None)
-        assert testStr == "James Kirk Copyright (c) 2023"
+    return_str = test_parser.build_new_copyright_msg(2023, 2024, True)
+    assert return_str == " * Copyright (c) 2023-2024 James Kirk          *"
 
-        testStr = self.tstParser.buildNewCopyrightMsg(2023, 2024)
-        assert testStr == "James Kirk Copyright (c) 2023-2024"
+def test1008_build_new_msg_no_parse():
+    """!
+    @brief Test the build_new_copyright_msg() method with no parsed data
+    """
+    test_parser = setup_order1()
+    return_str = test_parser.build_new_copyright_msg(2024)
+    assert return_str is None
 
-        testStr = self.tstParser.buildNewCopyrightMsg(2024, addStartEnd=True)
-        assert testStr == " * James Kirk Copyright (c) 2024               *"
+    return_str = test_parser.build_new_copyright_msg(2023, None)
+    assert return_str is None
 
-        testStr = self.tstParser.buildNewCopyrightMsg(2023, None, True)
-        assert testStr == " * James Kirk Copyright (c) 2023               *"
+    return_str = test_parser.build_new_copyright_msg(2023, 2024)
+    assert return_str is None
 
-        testStr = self.tstParser.buildNewCopyrightMsg(2023, 2024, True)
-        assert testStr == " * James Kirk Copyright (c) 2023-2024          *"
+    return_str = test_parser.build_new_copyright_msg(2024, add_start_end=True)
+    assert return_str is None
 
-    def test009BuildNewMsgNoParse(self):
-        """!
-        @brief Test the buildNewCopyrightMsg() method with no parsed data
-        """
-        testStr = self.tstParser.buildNewCopyrightMsg(2024)
-        assert testStr is None
+    return_str = test_parser.build_new_copyright_msg(2023, None, True)
+    assert return_str is None
 
-        testStr = self.tstParser.buildNewCopyrightMsg(2023, None)
-        assert testStr is None
+    return_str = test_parser.build_new_copyright_msg(2023, 2024, True)
+    assert return_str is None
 
-        testStr = self.tstParser.buildNewCopyrightMsg(2023, 2024)
-        assert testStr is None
+# Unit test for the copyright parser order1 class
 
-        testStr = self.tstParser.buildNewCopyrightMsg(2024, addStartEnd=True)
-        assert testStr is None
+def setup_order2():
+    """!
+    @brief TestClass05CopyrightParserOrder2 test setup
+    """
+    test_parser = CopyrightParseOrder2(copyright_search_msg = r'Copyright|COPYRIGHT|copyright',
+                                       copyright_search_tag = r'\([cC]\)',
+                                       copyright_search_date = r'(\d{4})',
+                                       copyright_owner_spec = r'[a-zA-Z0-9,\./\- @]',
+                                       use_unicode = False)
+    return test_parser
 
-        testStr = self.tstParser.buildNewCopyrightMsg(2023, None, True)
-        assert testStr is None
+def test2001_is_copyright_line():
+    """!
+    @brief Test the is_copyright_line method
+    """
+    test_parser = setup_order2()
+    assert test_parser.is_copyright_line(" Me Copyright (c) 2024")
+    assert test_parser.is_copyright_line(" Me copyright (c)  2024")
+    assert test_parser.is_copyright_line(" ME COPYRIGHT (c)  2024")
+    assert test_parser.is_copyright_line(" foo  Copyright  (c)   2024-2025")
+    assert test_parser.is_copyright_line(" you copyright (c) 2024-2025")
+    assert test_parser.is_copyright_line(" You COPYRIGHT (c) 2024,2025")
 
-        testStr = self.tstParser.buildNewCopyrightMsg(2023, 2024, True)
-        assert testStr is None
+    assert test_parser.is_copyright_line(" her Copyright (C) 2024")
+    assert test_parser.is_copyright_line(" them copyright (C) 2024")
+    assert test_parser.is_copyright_line(" other COPYRIGHT (C) 2024")
+    assert test_parser.is_copyright_line(" some body COPYRIGHT (C) 2024,2025")
+
+    assert test_parser.is_copyright_line("* some body COPYRIGHT (C) 2024,2025      *")
+
+def test2002_is_copyright_line_missing_component_fail():
+    """!
+    @brief Test the is_copyright_line() method, failed for missing components
+    """
+    test_parser = setup_order2()
+    assert not test_parser.is_copyright_line(" Me Copy right (c) 2024")
+    assert not test_parser.is_copyright_line(" Me Copyright (a) 2024")
+    assert not test_parser.is_copyright_line(" Me Copyright (c)")
+    assert not test_parser.is_copyright_line(" Me Copyright c 2024")
+    assert not test_parser.is_copyright_line(" Me Random text 2024")
+    assert not test_parser.is_copyright_line(" COPYRIGHT (C) 2024,2025")
+
+def test2003_is_copyright_line_order_fail():
+    """!
+    @brief Test the is_copyright_line() method, failed for invalid order
+    """
+    test_parser = setup_order2()
+    assert not test_parser.is_copyright_line(" (c) Copyright 2024 Me")
+    assert not test_parser.is_copyright_line(" 2024 Copyright (c) Me")
+    assert not test_parser.is_copyright_line(" Copyright (c) 2024 Me")
+    assert not test_parser.is_copyright_line(" Copyright (c) me 2024")
+    assert not test_parser.is_copyright_line(" Me Copyright 2022-2024 (c)")
+
+def test2004_parse_copyright_msg():
+    """!
+    @brief Test the parse_copyright_msg() method.
+
+    Basic test as TestClass02CopyrightParserBase does a more complete job
+    of testing the component functiions that this function calls
+    """
+    test_parser = setup_order2()
+    test_parser.parse_copyright_msg(" Me Copyright (c) 2024")
+    assert test_parser.copyright_text_valid
+    assert test_parser.copyright_text == " Me Copyright (c) 2024"
+    assert test_parser.copyright_text_start == " "
+    assert test_parser.copyright_text_msg == "Copyright"
+    assert test_parser.copyright_text_tag == "(c)"
+    assert test_parser.copyright_text_owner == "Me"
+    assert test_parser.copyright_text_eol is None
+    assert len(test_parser.copyright_year_list) == 1
+
+def test2005_parse_copyright_msg_with_eol():
+    """!
+    @brief Test the parse_copyright_msg() method.
+
+    Basic test as TestClass02CopyrightParserBase does a more complete job
+    of testing the component functiions that this function calls
+    """
+    test_parser = setup_order2()
+    test_parser.parse_copyright_msg(" * Me Copyright (c) 2024                 *")
+    assert test_parser.copyright_text_valid
+    assert test_parser.copyright_text == " * Me Copyright (c) 2024                 *"
+    assert test_parser.copyright_text_start == " * "
+    assert test_parser.copyright_text_msg == "Copyright"
+    assert test_parser.copyright_text_tag == "(c)"
+    assert test_parser.copyright_text_owner == "Me"
+    assert test_parser.copyright_text_eol == "*"
+    assert len(test_parser.copyright_year_list) == 1
+
+def test2006_parse_copyright_msg_with_error():
+    """!
+    @brief Test the parse_copyright_msg() method.
+
+    Basic test as TestClass02CopyrightParserBase does a more complete job
+    of testing the component functiions that this function calls
+    """
+    test_parser = setup_order2()
+    test_parser.parse_copyright_msg(" * Me (c) 2024                 *")
+    assert not test_parser.copyright_text_valid
+    assert test_parser.copyright_text == ""
+    assert test_parser.copyright_text_start == ""
+
+    assert test_parser.copyright_text_msg is None
+    assert test_parser.copyright_text_tag == "(c)"
+    assert test_parser.copyright_text_owner is None
+    assert test_parser.copyright_text_eol == "*"
+    assert len(test_parser.copyright_year_list) == 1
+
+def test2007_create_copyright_msg():
+    """!
+    @brief Test the _create_copyright_msg() method.
+    """
+    test_parser = setup_order2()
+    return_str = test_parser._create_copyright_msg("James Kirk", "Copyright",
+                                                        "(c)", 2024, 2024)
+    assert return_str == "James Kirk Copyright (c) 2024"
+
+    return_str = test_parser._create_copyright_msg("James Kirk", "Copyright",
+                                                        "(c)", 2022, 2024)
+    assert return_str == "James Kirk Copyright (c) 2022-2024"
+
+    return_str = test_parser._create_copyright_msg("Mr. Spock", "Copyright",
+                                                        "(c)", 2024, None)
+    assert return_str == "Mr. Spock Copyright (c) 2024"
+
+    return_str = test_parser._create_copyright_msg("Mr. Spock", "Copyright",
+                                                        "(c)", 2023)
+    assert return_str == "Mr. Spock Copyright (c) 2023"
+
+def test2008_build_new_msg():
+    """!
+    @brief Test the build_new_copyright_msg() method.
+    """
+    test_parser = setup_order2()
+    test_parser.parse_copyright_msg(" * James Kirk Copyright (c) 2022               *")
+    return_str = test_parser.build_new_copyright_msg(2024)
+    assert return_str == "James Kirk Copyright (c) 2024"
+
+    return_str = test_parser.build_new_copyright_msg(2023, None)
+    assert return_str == "James Kirk Copyright (c) 2023"
+
+    return_str = test_parser.build_new_copyright_msg(2023, 2024)
+    assert return_str == "James Kirk Copyright (c) 2023-2024"
+
+    return_str = test_parser.build_new_copyright_msg(2024, add_start_end=True)
+    assert return_str == " * James Kirk Copyright (c) 2024               *"
+
+    return_str = test_parser.build_new_copyright_msg(2023, None, True)
+    assert return_str == " * James Kirk Copyright (c) 2023               *"
+
+    return_str = test_parser.build_new_copyright_msg(2023, 2024, True)
+    assert return_str == " * James Kirk Copyright (c) 2023-2024          *"
+
+def test2009_build_new_msg_no_parse():
+    """!
+    @brief Test the build_new_copyright_msg() method with no parsed data
+    """
+    test_parser = setup_order2()
+    return_str = test_parser.build_new_copyright_msg(2024)
+    assert return_str is None
+
+    return_str = test_parser.build_new_copyright_msg(2023, None)
+    assert return_str is None
+
+    return_str = test_parser.build_new_copyright_msg(2023, 2024)
+    assert return_str is None
+
+    return_str = test_parser.build_new_copyright_msg(2024, add_start_end=True)
+    assert return_str is None
+
+    return_str = test_parser.build_new_copyright_msg(2023, None, True)
+    assert return_str is None
+
+    return_str = test_parser.build_new_copyright_msg(2023, 2024, True)
+    assert return_str is None

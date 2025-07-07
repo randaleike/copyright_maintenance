@@ -29,11 +29,11 @@ Scan the source files and update the copyright year in the header section of any
 import datetime
 
 from copyright_maintenance_grocsoftware.file_dates import GetFileYears
-from copyright_maintenance_grocsoftware.oscmdshell import GetCommandShell
+from copyright_maintenance_grocsoftware.oscmdshell import get_command_shell
 
 from copyright_maintenance_grocsoftware.copyright_tools import CopyrightParseEnglish
-from copyright_maintenance_grocsoftware.copyright_tools import CopyrightGenerator
-from copyright_maintenance_grocsoftware.copyright_tools import CopyrightFinder
+from copyright_maintenance_grocsoftware.copyright_generator import CopyrightGenerator
+from copyright_maintenance_grocsoftware.copyright_finder import CopyrightFinder
 from copyright_maintenance_grocsoftware.comment_block import CommentBlock
 from copyright_maintenance_grocsoftware.comment_block import CommentParams
 
@@ -43,16 +43,16 @@ DBG_MSG_VERBOSE = 2
 DBG_MSG_VERYVERBOSE = 3
 DEBUG_LEVEL = DBG_MSG_NONE
 
-def DebugPrint(messageLevel, message):
+def debug_print(message_level, message):
     """
     @brief Print a debug message to the console if the input message level is
            greater than or equal to the current global debug threshold.
 
-    @param messageLevel (int): Debug level (DBG_MSG_MINIMAL | DBG_MSG_VERBOSE
+    @param message_level (int): Debug level (DBG_MSG_MINIMAL | DBG_MSG_VERBOSE
                                             | DBG_MSG_VERYVERBOSE) of the input message.
     @param message (string): Debug message text.
     """
-    if DEBUG_LEVEL >= messageLevel:
+    if DEBUG_LEVEL >= message_level:
         print ("Debug: "+message)
 
 class CopyrightCommentBlock(CommentBlock):
@@ -60,50 +60,56 @@ class CopyrightCommentBlock(CommentBlock):
     Identify the start and end of a comment blocks and determine if the
     copyright message is in the block(s)
     """
-    def __init__(self, inputFile,
-                 commentMarkers:dict|None = None,
-                 copyRightParser = None):
+    def __init__(self, input_file,
+                 comment_markers:dict|None = None,
+                 copyright_parser = None):
         """!
         @brief Constructor
 
         @param self(CopyrightCommentBlock) - Object reference
-        @param inputFile(file) - Open file object to read and identify the copyright block in.
-        @param commentMarkers(CommentBlockDelim element) - Comment deliminter markers for the input file type.
-        @param copyRightParser(CopyrightParse object) - Copyright parser object or None if default
-                                                        parser is to be used.
+        @param input_file(file) - Open file object to read and identify the copyright block in.
+        @param comment_markers(CommentBlockDelim element) - Comment deliminter markers for the
+                                                            input file type.
+        @param copyright_parser(CopyrightParse object) - Copyright parser object or None if
+                                                         default parser is to be used.
 
         @return pass
         """
-        super().__init__(inputFile, commentMarkers)
+        super().__init__(input_file, comment_markers)
 
-        if copyRightParser is None:
-            self._copyrightParser = CopyrightParseEnglish()
-        else:
-            self._copyrightParser = copyRightParser
+        ## Copyright parser object to use for generation
+        self._copyright_parser = CopyrightParseEnglish()
+        if copyright_parser is not None:
+            self._copyright_parser = copyright_parser
 
-        self.inputFile = inputFile                  ##!< File to parse and look for the copyright message
-        self.copyrightBlockData = []                ##!< List of copyright comment block dictionary entries found
+        ## File to parse and look for the copyright message
+        self.input_file = input_file
+        ## List of copyright comment block dictionary entries found
+        self._copyright_block_data = []
 
-    def _isCopyrightCommentBlock(self, commentBlkStrtOff:int|None, commentBlkEndOff:int|None)->tuple:
+    def _is_copyright_comment_block(self, comment_blk_strt_off:int|None,
+                                    comment_blk_end_off:int|None)->tuple:
         """!
         @brief Check if the copyright message is within the current comment block
 
-        @param commentBlkStrtOff (fileoffset): File offset of the comment block start
-        @param commentBlkEndOff (fileoffset): File offset of the comment block start
+        @param comment_blk_strt_off (fileoffset): File offset of the comment block start
+        @param comment_blk_end_off (fileoffset): File offset of the comment block start
 
 
         @return bool: True if copyright message is found, else false
         @return dictionary: {'lineOffset': Starting file offset of the copyright message line,
                              'text': Current copyright text line}
         """
-        if (commentBlkStrtOff is not None) and (commentBlkEndOff is not None):
-            self.inputFile.seek(commentBlkStrtOff)
-            copyrightFind = CopyrightFinder(self._copyrightParser)
-            return copyrightFind.findNextCopyrightMsg(self.inputFile, commentBlkStrtOff, commentBlkEndOff)
+        if (comment_blk_strt_off is not None) and (comment_blk_end_off is not None):
+            self.input_file.seek(comment_blk_strt_off)
+            copyright_finder = CopyrightFinder(self._copyright_parser)
+            return copyright_finder.find_next_copyright_msg(self.input_file,
+                                                            comment_blk_strt_off,
+                                                            comment_blk_end_off)
         else:
             return False, None
 
-    def _isfindNextCopyrightBlock(self)->dict:
+    def _is_find_next_copyright_block(self)->dict:
         """!
         @brief Scan the current file from the current location to find a copyright comment block
 
@@ -113,34 +119,38 @@ class CopyrightCommentBlock(CommentBlock):
                              'blkEndEOL': copyright comment block ending file offset,
                              'blkEndSOL': copyright comment block ending line start file offset,
                              'copyrightMsgs': list of copyright data dictionaries
-                                              [{'lineOffset': Starting file offset of the copyright message line,
+                                              [{'lineOffset': Starting file offset of the
+                                                              copyright message line,
                                                 'text': Current copyright text line}]
                             }
         """
-        copyrightBlockFound = False
+        copyright_block_found = False
 
-        if self.findNextCommentBlock():
+        if self.find_next_comment_block():
             # Check if the block is a copyright block
-            locationDict = {'blkStart': self.commentBlkStrtOff,
-                            'blkEndEOL': self.commentBlkEOLOff,
-                            'blkEndSOL': self.commentBlkSOLOff,
+            location_dict = {'blkStart': self.comment_blk_strt_off,
+                            'blkEndEOL': self.comment_blk_eol_off,
+                            'blkEndSOL': self.comment_blk_sol_off,
                             'copyrightMsgs': []
                             }
 
             # Check if there are any copyright lines in the block
-            startLocation = self.commentBlkStrtOff
-            while startLocation < self.commentBlkEOLOff:
-                copyrightLineFound, copyrightLocation = self._isCopyrightCommentBlock(startLocation, self.commentBlkEOLOff)
-                if copyrightLineFound:
-                    startLocation = copyrightLocation['lineOffset'] + len(copyrightLocation['text'])
-                    locationDict['copyrightMsgs'].append(copyrightLocation)
-                    copyrightBlockFound = True
+            start_location = self.comment_blk_strt_off
+            while start_location < self.comment_blk_eol_off:
+                copyright_line_found, copyright_location = self._is_copyright_comment_block(
+                                                             start_location,
+                                                             self.comment_blk_eol_off)
+                if copyright_line_found:
+                    start_location = copyright_location['lineOffset']
+                    start_location += len(copyright_location['text'])
+                    location_dict['copyrightMsgs'].append(copyright_location)
+                    copyright_block_found = True
                 else:
                     break
 
-        return copyrightBlockFound, locationDict
+        return copyright_block_found, location_dict
 
-    def findCopyrightBlocks(self)->list:
+    def find_copyright_blocks(self)->list:
         """!
         @brief Scan the file for the comment block
 
@@ -149,134 +159,138 @@ class CopyrightCommentBlock(CommentBlock):
                           'blkEndEOL': copyright comment block ending file offset,
                           'blkEndSOL': copyright comment block ending line start file offset,
                           'copyrightMsgs': list of copyright data dictionaries
-                                          [{'lineOffset': Starting file offset of the copyright message line,
+                                           [{'lineOffset': Starting file offset of the
+                                                           copyright message line,
                                             'text': Current copyright text line}]
                         }]
         """
-        self.inputFile.seek(0)
-        self.copyrightBlockData.clear()
+        self.input_file.seek(0)
+        self._copyright_block_data.clear()
 
         # Scan the file
-        copyrightBlockFound = True
-        while copyrightBlockFound:
-            copyrightBlockFound, location = self._isfindNextCopyrightBlock()
-            if copyrightBlockFound:
-                self.copyrightBlockData.append(location)
+        copyright_block_found = True
+        while copyright_block_found:
+            copyright_block_found, location = self._is_find_next_copyright_block()
+            if copyright_block_found:
+                self._copyright_block_data.append(location)
 
-        return self.copyrightBlockData
+        return self._copyright_block_data
 
-def InsertNewCopyrightBlock(inputFile, outputFilename:str, commentBlockData:dict,
-                            commentMarker:dict, newCopyRightMsg:str, newEula:list|None = None)->bool:
+def insert_new_copyright_block(input_file, output_filename:str, comment_block_data:dict,
+                               comment_marker:dict, new_copyright_msg:str,
+                               new_eula:list|None = None)->bool:
     """!
     @brief Write a new file with the updated copyright message
 
-    @param inputFile (file): Existing text file
-    @param outputFilename (filename string): Name of the file to output updated text to
-    @param commentBlockData (dictionary): Comment block locations to update
-    @param commentMarker (dictionary): commentBlockDelim object to use for comment block replacement
-    @param newCopyRightMsg (string): New copyright message to write to the new file
-    @param newEula (list of strings): New license text to add to the copyright comment block
+    @param input_file (file): Existing text file
+    @param output_filename (filename string): Name of the file to output updated text to
+    @param comment_block_data (dictionary): Comment block locations to update
+    @param comment_marker (dictionary): commentBlockDelim object to use for comment block
+                                        replacement
+    @param new_copyright_msg (string): New copyright message to write to the new file
+    @param new_eula (list of strings): New license text to add to the copyright comment block
 
     @return Bool - True if new file was written, False if an error occured.
     """
     try:
-        outputFile = open(outputFilename, mode='wt', encoding="utf-8")
+        output_file = open(output_filename, mode='wt', encoding="utf-8")
 
         # Copy the first chunk of the file
-        inputFile.seek(0)
-        if commentBlockData['blkStart'] != 0:
-            header = inputFile.read(commentBlockData['blkStart'])
-            outputFile.write(header)
+        input_file.seek(0)
+        if comment_block_data['blkStart'] != 0:
+            header = input_file.read(comment_block_data['blkStart'])
+            output_file.write(header)
 
         # Output start of the comment block
-        newLine = commentMarker['blockStart']+"\n"
-        outputFile.write(newLine)
+        new_line = comment_marker['blockStart']+"\n"
+        output_file.write(new_line)
 
         # Insert the new copyright and licence text
-        newLine = commentMarker['blockLineStart']+" "+newCopyRightMsg+"\n"
-        outputFile.write(newLine)
+        new_line = comment_marker['blockLineStart']+" "+new_copyright_msg+"\n"
+        output_file.write(new_line)
 
         # Determine if we should update EULA
-        if newEula is not None:
-            newLine = commentMarker['blockLineStart']+"\n"
-            outputFile.write(newLine)
+        if new_eula is not None:
+            new_line = comment_marker['blockLineStart']+"\n"
+            output_file.write(new_line)
 
             # Insert new EULA
-            for licenceLine in newEula:
-                newLine = commentMarker['blockLineStart']+" "+licenceLine+"\n"
-                outputFile.write(newLine)
+            for licence_line in new_eula:
+                new_line = comment_marker['blockLineStart']+" "+licence_line+"\n"
+                output_file.write(new_line)
         else:
             # Copy old EULA
-            copyrightLocation = commentBlockData['copyrightMsgs'][0]
-            copyrightEnd = copyrightLocation['lineOffset'] + len(copyrightLocation['text'])
-            inputFile.seek(copyrightEnd)
-            currentLineOffset = copyrightEnd
-            while currentLineOffset < commentBlockData['blkEndSOL']:
-                newLine = commentMarker['blockLineStart']+" "+inputFile.readline()
-                outputFile.write(newLine)
-                currentLineOffset = inputFile.tell()
+            copyright_location = comment_block_data['copyrightMsgs'][0]
+            copyright_end = copyright_location['lineOffset'] + len(copyright_location['text'])
+            input_file.seek(copyright_end)
+            current_line_offset = copyright_end
+            while current_line_offset < comment_block_data['blkEndSOL']:
+                new_line = comment_marker['blockLineStart']+" "+input_file.readline()
+                output_file.write(new_line)
+                current_line_offset = input_file.tell()
 
         # Output the comment block end
-        newLine = commentMarker['blockEnd']+"\n"
-        outputFile.write(newLine)
+        new_line = comment_marker['blockEnd']+"\n"
+        output_file.write(new_line)
 
         # Copy the remainder of the file
-        inputFile.seek(commentBlockData['blkEndEOL'])
-        while newLine:
-            newLine = inputFile.readline()
-            outputFile.write(newLine)
+        input_file.seek(comment_block_data['blkEndEOL'])
+        while new_line:
+            new_line = input_file.readline()
+            output_file.write(new_line)
 
-        outputFile.close()
+        output_file.close()
         return True
 
-    except:
-        print("ERROR: Unable to open file \""+outputFilename+"\" for writing as text file.")
+    except OSError:
+        print("ERROR: Unable to open file \""+output_filename+"\" for writing as text file.")
         return False
 
-def UpdateCopyRightYears(fileName:str):
+def update_copyright_years(filename:str):
     """!
     @brief Update the copyright years in the copyright message of the input file
 
-    @param fileName(string): path and name of file to update
+    @param filename(string): path and name of file to update
     """
-    fileYearQuery = GetFileYears(fileName)
-    creationYrStr, modificationYrStr = fileYearQuery.getFileYears()
+    file_year_query = GetFileYears(filename)
+    creation_year_str, modify_year_str = file_year_query.get_file_years()
 
-    if creationYrStr is None:
-        print ("None returned from GetFileYears() for creation year")
-        creationYear = datetime.datetime.now().year
+    if creation_year_str is None:
+        print ("None returned from get_file_years() for creation year")
+        creation_year = datetime.datetime.now().year
     else:
-        creationYear = int(creationYrStr)
+        creation_year = int(creation_year_str)
 
-    if modificationYrStr is None:
-        print ("None returned from GetFileYears() for modification year")
-        modificationYear = datetime.datetime.now().year
+    if modify_year_str is None:
+        print ("None returned from get_file_years() for modification year")
+        modification_year = datetime.datetime.now().year
     else:
-        modificationYear = int(modificationYrStr)
+        modification_year = int(modify_year_str)
 
-    DebugPrint(DBG_MSG_MINIMAL, "Creation Year:     "+str(creationYear))
-    DebugPrint(DBG_MSG_MINIMAL, "Modification Year: "+str(modificationYear))
+    debug_print(DBG_MSG_MINIMAL, "Creation Year:     "+str(creation_year))
+    debug_print(DBG_MSG_MINIMAL, "Modification Year: "+str(modification_year))
 
-    with open(fileName, "rt", encoding="utf-8") as testFile:
+    with open(filename, "rt", encoding="utf-8") as testfile:
         # Get a copyright message parser and comment block parser
-        copyrightParser = CopyrightParseEnglish()
-        copyrightGen = CopyrightGenerator(copyrightParser)
-        commentProcessor = CopyrightCommentBlock(testFile,
-                                                CommentParams.getCommentMarkers(fileName),
-                                                copyrightParser)
+        copyright_parser = CopyrightParseEnglish()
+        copyright_generator = CopyrightGenerator(copyright_parser)
+        comment_processor = CopyrightCommentBlock(testfile,
+                                                CommentParams.get_comment_markers(filename),
+                                                copyright_parser)
         # Find all copyright comment blocks
-        copyrightMsgList = commentProcessor.findCopyrightBlocks()
-        if copyrightMsgList:
+        copyright_msg_list = comment_processor.find_copyright_blocks()
+        if copyright_msg_list:
             # Process the old message
-            oldMsg = copyrightMsgList[0]['copyrightMsgs'][-1]['text']
-            oldMsg = oldMsg.rstrip()
-            copyrightParser.parseCopyrightMsg(oldMsg)
+            old_msg = copyright_msg_list[0]['copyrightMsgs'][-1]['text']
+            old_msg = old_msg.rstrip()
+            copyright_parser.parse_copyright_msg(old_msg)
 
             # Get the new message
-            msgChanged, newMsg = copyrightGen.getNewCopyrightMsg(creationYear, modificationYear)
-            DebugPrint(DBG_MSG_MINIMAL, "Old copyright: "+oldMsg)
-            DebugPrint(DBG_MSG_MINIMAL, "New copyright: "+newMsg)
-            DebugPrint(DBG_MSG_MINIMAL, "New copyright changed: "+str(msgChanged))
+            msg_changed, new_msg = copyright_generator.get_new_copyright_msg(creation_year,
+                                                                             modification_year)
+            debug_print(DBG_MSG_MINIMAL, "Old copyright: "+old_msg)
+            debug_print(DBG_MSG_MINIMAL, "New copyright: "+new_msg)
+            debug_print(DBG_MSG_MINIMAL, "New copyright changed: "+str(msg_changed))
 
-            if msgChanged:
-                GetCommandShell().streamEdit(fileName, oldMsg, newMsg)
+            if msg_changed:
+                get_command_shell().stream_edit(filename, old_msg, new_msg)

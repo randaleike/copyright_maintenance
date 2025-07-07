@@ -1,6 +1,5 @@
 """@package test_programmer_tools
-Unittest for programmer base tools utility
-
+Unittest for copyright maintenance utility
 """
 
 #==========================================================================
@@ -27,107 +26,108 @@ Unittest for programmer base tools utility
 
 import re
 
-
-from dir_init import pathincsetup
-pathincsetup()
-
 from copyright_maintenance_grocsoftware.copyright_tools import SubTextMarker
 from copyright_maintenance_grocsoftware.copyright_tools import CopyrightYearsList
 from copyright_maintenance_grocsoftware.copyright_tools import CopyrightParse
+
+# pylint: disable=protected-access
 
 class TestClass01CopyrightParserBase:
     """!
     @brief Unit test for the copyright parser class
     """
-    def setup_method(self):
-        self.tstParser = CopyrightParse(copyrightSearchMsg = r'Copyright|COPYRIGHT|copyright',
-                                        copyrightSearchTag = r'\([cC]\)',
-                                        copyrightSearchDate = r'(\d{4})',
-                                        copyrightOwnerSpec = r'[a-zA-Z0-9,\./\- @]',
-                                        useUnicode = False)
+    def setup_method(self, _):
+        """!
+        @brief Method setup function
+        """
+        self.test_parser = CopyrightParse(copyright_search_msg = r'Copyright|COPYRIGHT|copyright',
+                                          copyright_search_tag = r'\([cC]\)',
+                                          copyright_search_date = r'(\d{4})',
+                                          copyright_owner_spec = r'[a-zA-Z0-9,\./\- @]',
+                                          use_unicode = False)
 
     def test001CopyrightCheckDefault(self):
         """!
         @brief Test the default CopyrightParse constructor
         """
         # Test default values
-        assert self.tstParser.copyrightTextStart == ""
-        assert self.tstParser.copyrightTextMsg is None
-        assert self.tstParser.copyrightTextTag is None
-        assert self.tstParser.copyrightTextOwner is None
-        assert self.tstParser.copyrightTextEol is None
-        assert not self.tstParser.copyrightTextValid
-        assert len(self.tstParser.copyrightYearList) == 0
+        assert self.test_parser.copyright_text_start == ""
+        assert self.test_parser.copyright_text_msg is None
+        assert self.test_parser.copyright_text_tag is None
+        assert self.test_parser.copyright_text_owner is None
+        assert self.test_parser.copyright_text_eol is None
+        assert not self.test_parser.copyright_text_valid
+        assert len(self.test_parser.copyright_year_list) == 0
 
     def test002CopyrightCheckAccessors(self):
         """!
         @brief Test the CopyrightParse accessor functions
         """
         # Test accessor functions
-        assert self.tstParser.isCopyrightTextValid() == self.tstParser.copyrightTextValid
-        assert self.tstParser.getCopyrightText() == self.tstParser.copyrightText
-        yearList = self.tstParser.getCopyrightDates()
-        assert len(yearList) == len(self.tstParser.copyrightYearList)
+        assert self.test_parser.is_copyright_text_valid() == self.test_parser.copyright_text_valid
+        assert self.test_parser.get_copyright_text() == self.test_parser.copyright_text
+        year_list = self.test_parser.get_copyright_dates()
+        assert len(year_list) == len(self.test_parser.copyright_year_list)
 
     def test003CopyrightAddOwnerNoParse(self):
         """!
-        @brief Test the addOwner with noe parsed data
+        @brief Test the add_owner with noe parsed data
         """
         # False because no message parsed to add owner to
-        assert not self.tstParser.addOwner("New Owner")
+        assert not self.test_parser.add_owner("New Owner")
 
     def test004CopyrightReplaceOwnerNoParse(self):
         """!
         @brief Test the replace owner method
         """
-        self.tstParser.replaceOwner("new owner")
-        assert self.tstParser.copyrightTextOwner == "new owner"
+        self.test_parser.replace_owner("new owner")
+        assert self.test_parser.copyright_text_owner == "new owner"
 
-        self.tstParser.replaceOwner("second city")
-        assert self.tstParser.copyrightTextOwner == "second city"
+        self.test_parser.replace_owner("second city")
+        assert self.test_parser.copyright_text_owner == "second city"
 
-        self.tstParser.replaceOwner("prince")
-        assert self.tstParser.copyrightTextOwner == "prince"
+        self.test_parser.replace_owner("prince")
+        assert self.test_parser.copyright_text_owner == "prince"
 
     def test005CopyrightParseEOLNoTail(self):
         """!
         @brief Test the parse eol method, no EOL text
         """
-        eolTextMarker = self.tstParser._parseEolString("", 20)
+        eolTextMarker = self.test_parser._parse_eol_string("", 20)
         assert eolTextMarker is None
 
-        eolTextMarker = self.tstParser._parseEolString(" ", 20)
+        eolTextMarker = self.test_parser._parse_eol_string(" ", 20)
         assert eolTextMarker is None
 
     def test006CopyrightParseEOLWithTail(self):
         """!
         @brief Test the parse eol method, with EOL text
         """
-        eolTextMarker = self.tstParser._parseEolString("*", 20)
+        eolTextMarker = self.test_parser._parse_eol_string("*", 20)
         assert eolTextMarker is not None
         assert eolTextMarker.text == "*"
         assert eolTextMarker.start == 20
         assert eolTextMarker.end == 21
 
-        eolTextMarker = self.tstParser._parseEolString(" *", 20)
+        eolTextMarker = self.test_parser._parse_eol_string(" *", 20)
         assert eolTextMarker is not None
         assert eolTextMarker.text == "*"
         assert eolTextMarker.start == 21
         assert eolTextMarker.end == 22
 
-        eolTextMarker = self.tstParser._parseEolString(" * ", 30)
+        eolTextMarker = self.test_parser._parse_eol_string(" * ", 30)
         assert eolTextMarker is not None
         assert eolTextMarker.text == "*"
         assert eolTextMarker.start == 31
         assert eolTextMarker.end == 32
 
-        eolTextMarker = self.tstParser._parseEolString(" ** ", 30)
+        eolTextMarker = self.test_parser._parse_eol_string(" ** ", 30)
         assert eolTextMarker is not None
         assert eolTextMarker.text == "**"
         assert eolTextMarker.start == 31
         assert eolTextMarker.end == 33
 
-        eolTextMarker = self.tstParser._parseEolString("   ** ", 30)
+        eolTextMarker = self.test_parser._parse_eol_string("   ** ", 30)
         assert eolTextMarker is not None
         assert eolTextMarker.text == "**"
         assert eolTextMarker.start == 33
@@ -137,19 +137,19 @@ class TestClass01CopyrightParserBase:
         """!
         @brief Test the parse eol method, no EOL text
         """
-        textMarker = self.tstParser._parseOwnerString("", 20)
+        textMarker = self.test_parser._parse_owner_string("", 20)
         assert textMarker is None
 
-        textMarker = self.tstParser._parseOwnerString(" ", 20)
+        textMarker = self.test_parser._parse_owner_string(" ", 20)
         assert textMarker is None
 
-        textMarker = self.tstParser._parseOwnerString("\t", 20)
+        textMarker = self.test_parser._parse_owner_string("\t", 20)
         assert textMarker is None
 
-        textMarker = self.tstParser._parseOwnerString("::", 20)
+        textMarker = self.test_parser._parse_owner_string("::", 20)
         assert textMarker is None
 
-        textMarker = self.tstParser._parseOwnerString(";;", 20)
+        textMarker = self.test_parser._parse_owner_string(";;", 20)
         assert textMarker is None
 
     def test008CopyrightParseOwnerString(self):
@@ -158,25 +158,25 @@ class TestClass01CopyrightParserBase:
         """
         ownerList = ["Wolverine", "Professor X", "professor.x@xavier.edu", "3M Corp."]
         for owner in ownerList:
-            textMarker = self.tstParser._parseOwnerString(owner, 15)
+            textMarker = self.test_parser._parse_owner_string(owner, 15)
             assert textMarker is not None
             assert textMarker.text == owner
             assert textMarker.start == 15
             assert textMarker.end == 15+len(owner)
 
-            textMarker = self.tstParser._parseOwnerString(" "+owner, 15)
+            textMarker = self.test_parser._parse_owner_string(" "+owner, 15)
             assert textMarker is not None
             assert textMarker.text == owner
             assert textMarker.start == 16
             assert textMarker.end == 16+len(owner)
 
-            textMarker = self.tstParser._parseOwnerString(" "+owner+" ", 15)
+            textMarker = self.test_parser._parse_owner_string(" "+owner+" ", 15)
             assert textMarker is not None
             assert textMarker.text == owner
             assert textMarker.start == 16
             assert textMarker.end == 16+len(owner)
 
-            textMarker = self.tstParser._parseOwnerString(" "+owner+"        *", 15)
+            textMarker = self.test_parser._parse_owner_string(" "+owner+"        *", 15)
             assert textMarker is not None
             assert textMarker.text == owner
             assert textMarker.start == 16
@@ -186,163 +186,163 @@ class TestClass01CopyrightParserBase:
         """!
         @brief Test the parse years
         """
-        yearParser = self.tstParser._parseYears(" 2024 ")
-        assert yearParser.isValid()
+        yearParser = self.test_parser._parse_years(" 2024 ")
+        assert yearParser.is_valid()
 
-        yearList = yearParser.getNumericYearList()
-        assert len(yearList) == 1
+        year_list = yearParser.get_numeric_year_list()
+        assert len(year_list) == 1
 
-        assert yearParser.getFirstEntry() == 2024
-        assert yearParser.getLastEntry() == 2024
-        assert yearParser.getStartingStringIndex() == 1
-        assert yearParser.getEndingStringIndex() == 5
+        assert yearParser.get_first_entry() == 2024
+        assert yearParser.get_last_entry() == 2024
+        assert yearParser.get_starting_string_index() == 1
+        assert yearParser.get_ending_string_index() == 5
 
-        yearParser = self.tstParser._parseYears(" 2024-2025 ")
-        assert yearParser.isValid()
+        yearParser = self.test_parser._parse_years(" 2024-2025 ")
+        assert yearParser.is_valid()
 
-        yearList = yearParser.getNumericYearList()
-        assert len(yearList) == 2
+        year_list = yearParser.get_numeric_year_list()
+        assert len(year_list) == 2
 
-        assert yearParser.getFirstEntry() == 2024
-        assert yearParser.getLastEntry() == 2025
-        assert yearParser.getStartingStringIndex() == 1
-        assert yearParser.getEndingStringIndex() == 10
+        assert yearParser.get_first_entry() == 2024
+        assert yearParser.get_last_entry() == 2025
+        assert yearParser.get_starting_string_index() == 1
+        assert yearParser.get_ending_string_index() == 10
 
     def test010CopyrightParseComponents(self):
         """!
         @brief Test the parse copyright parse components, standard order, with fluff, no failure
         """
-        copyrightMsgList = ["Copyright", "COPYRIGHT", "copyright"]
+        copyright_msg_list = ["Copyright", "COPYRIGHT", "copyright"]
         copyrightTagList = ["(c)", "(C)"]
         startFluffList = ["", " ", "Owners name ", "Random text "]
         endFluffList = ["", " ", " Owners name", " Random text    *"]
         for crtag in copyrightTagList:
-            for crmsg in copyrightMsgList:
+            for crmsg in copyright_msg_list:
                 for startFluff in startFluffList:
                     for endFluff in  endFluffList:
-                        testStr = startFluff+crmsg+" "+crtag+" 2024"+endFluff
-                        msgMarker, tagMarker, yearList = self.tstParser._parseCopyrightComponents(testStr)
-                        assert msgMarker is not None
-                        assert msgMarker.group() == crmsg
-                        assert tagMarker is not None
-                        assert tagMarker.group() == crtag
-                        assert yearList is not None
-                        assert yearList.isValid()
+                        test_str = startFluff+crmsg+" "+crtag+" 2024"+endFluff
+                        msg_marker, tag_marker, year_list = self.test_parser._parse_copyright_components(test_str)
+                        assert msg_marker is not None
+                        assert msg_marker.group() == crmsg
+                        assert tag_marker is not None
+                        assert tag_marker.group() == crtag
+                        assert year_list is not None
+                        assert year_list.is_valid()
 
     def test011CopyrightParseComponentsFail(self):
         """!
         @brief Test the parse copyright parse components, standard order, failure
         """
         # Message fail
-        msgMarker, tagMarker, yearList = self.tstParser._parseCopyrightComponents("Random (c) 2024 owner")
-        assert msgMarker is None
-        assert tagMarker is not None
-        assert tagMarker.group() == "(c)"
-        assert yearList is not None
-        assert yearList.isValid()
+        msg_marker, tag_marker, year_list = self.test_parser._parse_copyright_components("Random (c) 2024 owner")
+        assert msg_marker is None
+        assert tag_marker is not None
+        assert tag_marker.group() == "(c)"
+        assert year_list is not None
+        assert year_list.is_valid()
 
         # Tag fail
-        msgMarker, tagMarker, yearList = self.tstParser._parseCopyrightComponents("copyright (r) 2024 owner")
-        assert msgMarker is not None
-        assert msgMarker.group() == "copyright"
-        assert tagMarker is None
-        assert yearList is not None
-        assert yearList.isValid()
+        msg_marker, tag_marker, year_list = self.test_parser._parse_copyright_components("copyright (r) 2024 owner")
+        assert msg_marker is not None
+        assert msg_marker.group() == "copyright"
+        assert tag_marker is None
+        assert year_list is not None
+        assert year_list.is_valid()
 
         # Year fail
-        msgMarker, tagMarker, yearList = self.tstParser._parseCopyrightComponents("copyright (c) notyear owner")
-        assert msgMarker is not None
-        assert msgMarker.group() == "copyright"
-        assert tagMarker is not None
-        assert tagMarker.group() == "(c)"
-        assert yearList is not None
-        assert not yearList.isValid()
+        msg_marker, tag_marker, year_list = self.test_parser._parse_copyright_components("copyright (c) notyear owner")
+        assert msg_marker is not None
+        assert msg_marker.group() == "copyright"
+        assert tag_marker is not None
+        assert tag_marker.group() == "(c)"
+        assert year_list is not None
+        assert not year_list.is_valid()
 
     def test012CopyrightParseComponentsDifferentOrders(self):
         """!
         @brief Test the parse copyright parse components, different orders
         """
         # Year first
-        msgMarker, tagMarker, yearList = self.tstParser._parseCopyrightComponents("2024 Copyright (c) owner")
-        assert msgMarker is not None
-        assert msgMarker.group() == "Copyright"
-        assert tagMarker is not None
-        assert tagMarker.group() == "(c)"
-        assert yearList is not None
-        assert yearList.isValid()
+        msg_marker, tag_marker, year_list = self.test_parser._parse_copyright_components("2024 Copyright (c) owner")
+        assert msg_marker is not None
+        assert msg_marker.group() == "Copyright"
+        assert tag_marker is not None
+        assert tag_marker.group() == "(c)"
+        assert year_list is not None
+        assert year_list.is_valid()
 
         # owner, year first
-        msgMarker, tagMarker, yearList = self.tstParser._parseCopyrightComponents("2024 owner Copyright (c)")
-        assert msgMarker is not None
-        assert msgMarker.group() == "Copyright"
-        assert tagMarker is not None
-        assert tagMarker.group() == "(c)"
-        assert yearList is not None
-        assert yearList.isValid()
+        msg_marker, tag_marker, year_list = self.test_parser._parse_copyright_components("2024 owner Copyright (c)")
+        assert msg_marker is not None
+        assert msg_marker.group() == "Copyright"
+        assert tag_marker is not None
+        assert tag_marker.group() == "(c)"
+        assert year_list is not None
+        assert year_list.is_valid()
 
         # msg tag weird
-        msgMarker, tagMarker, yearList = self.tstParser._parseCopyrightComponents("2024 owner (c) Copyright")
-        assert msgMarker is not None
-        assert msgMarker.group() == "Copyright"
-        assert tagMarker is not None
-        assert tagMarker.group() == "(c)"
-        assert yearList is not None
-        assert yearList.isValid()
+        msg_marker, tag_marker, year_list = self.test_parser._parse_copyright_components("2024 owner (c) Copyright")
+        assert msg_marker is not None
+        assert msg_marker.group() == "Copyright"
+        assert tag_marker is not None
+        assert tag_marker.group() == "(c)"
+        assert year_list is not None
+        assert year_list.is_valid()
 
         # owner year
-        msgMarker, tagMarker, yearList = self.tstParser._parseCopyrightComponents("owner 2024-2025 (c) Copyright")
-        assert msgMarker is not None
-        assert msgMarker.group() == "Copyright"
-        assert tagMarker is not None
-        assert tagMarker.group() == "(c)"
-        assert yearList is not None
-        assert yearList.isValid()
+        msg_marker, tag_marker, year_list = self.test_parser._parse_copyright_components("owner 2024-2025 (c) Copyright")
+        assert msg_marker is not None
+        assert msg_marker.group() == "Copyright"
+        assert tag_marker is not None
+        assert tag_marker.group() == "(c)"
+        assert year_list is not None
+        assert year_list.is_valid()
 
     def test013CopyrightCheckComponents(self):
         """!
         @brief Test the parse copyright check components
         """
-        msgMarker = re.Match
-        tagMarker = re.Match
-        yearList = CopyrightYearsList('2022', r'(\d{4})', 25)
-        ownerData = SubTextMarker("Owner", 34)
+        msg_marker = re.Match
+        tag_marker = re.Match
+        year_list = CopyrightYearsList('2022', r'(\d{4})', 25)
+        owner_data = SubTextMarker("Owner", 34)
 
         # Test None inputs
-        assert not self.tstParser._checkComponents(None, tagMarker, yearList, ownerData)
-        assert not self.tstParser._checkComponents(msgMarker, None, yearList, ownerData)
-        assert not self.tstParser._checkComponents(msgMarker, tagMarker, yearList, None)
+        assert not self.test_parser._check_components(None, tag_marker, year_list, owner_data)
+        assert not self.test_parser._check_components(msg_marker, None, year_list, owner_data)
+        assert not self.test_parser._check_components(msg_marker, tag_marker, year_list, None)
 
         # Test Invalid date inputs
         yearListBad = CopyrightYearsList('', r'(\d{4})', 25)
-        assert not yearListBad.isValid()
-        assert not self.tstParser._checkComponents(msgMarker, tagMarker, yearListBad, ownerData)
+        assert not yearListBad.is_valid()
+        assert not self.test_parser._check_components(msg_marker, tag_marker, yearListBad, owner_data)
 
         # Test passing case
-        assert self.tstParser._checkComponents(msgMarker, tagMarker, yearList, ownerData)
+        assert self.test_parser._check_components(msg_marker, tag_marker, year_list, owner_data)
 
     def test014CopyrightBuild(self):
         """!
         @brief Test the parse copyright build year string method
         """
-        yearStr = self.tstParser._buildCopyrightYearString(2025,None)
-        assert yearStr == "2025"
-        yearStr = self.tstParser._buildCopyrightYearString(2022,2022)
-        assert yearStr == "2022"
-        yearStr = self.tstParser._buildCopyrightYearString(2022,2024)
-        assert yearStr == "2022-2024"
+        year_str = self.test_parser._build_copyright_year_string(2025,None)
+        assert year_str == "2025"
+        year_str = self.test_parser._build_copyright_year_string(2022,2022)
+        assert year_str == "2022"
+        year_str = self.test_parser._build_copyright_year_string(2022,2024)
+        assert year_str == "2022-2024"
 
 class TestClass02CopyrightParserBase:
     def setup_method(self):
-        self.tstParser = CopyrightParse(copyrightSearchMsg = r'Copyright|COPYRIGHT|copyright',
-                                        copyrightSearchTag = r'\([cC]\)',
-                                        copyrightSearchDate = r'(\d{4})',
-                                        copyrightOwnerSpec = r'[a-zA-Z0-9,\./\- @]',
-                                        useUnicode = False)
+        self.test_parser = CopyrightParse(copyright_search_msg = r'Copyright|COPYRIGHT|copyright',
+                                        copyright_search_tag = r'\([cC]\)',
+                                        copyright_search_date = r'(\d{4})',
+                                        copyright_owner_spec = r'[a-zA-Z0-9,\./\- @]',
+                                        use_unicode = False)
 
         self.tstMessage = " * Copyright (c) 2024-2025 Jean Grey             *"
         self.tstSolText = " * "
         self.tstEolMarker = SubTextMarker("*", len(self.tstMessage)-1)
-        self.tstMsgMarker, self.tstTagMarker, self.tstYearList = self.tstParser._parseCopyrightComponents(self.tstMessage)
+        self.tstMsgMarker, self.tstTagMarker, self.tstYearList = self.test_parser._parse_copyright_components(self.tstMessage)
         self.tstOwnerData = SubTextMarker("Jean Grey", 27)
 
     def test001CopyrightSetParsedDataMsgNone(self):
@@ -350,34 +350,34 @@ class TestClass02CopyrightParserBase:
         @brief Test the parse copyright set parsed data, msg=None
         """
         # Test msg none
-        self.tstParser._setParsedCopyrightData("currentMsg", None, self.tstTagMarker, self.tstYearList,
+        self.test_parser._set_parsed_copyright_data("current_msg", None, self.tstTagMarker, self.tstYearList,
                                                self.tstOwnerData, self.tstSolText, self.tstEolMarker)
-        assert not self.tstParser.copyrightTextValid
-        assert self.tstParser.copyrightText == ""
-        assert self.tstParser.copyrightTextStart == ""
+        assert not self.test_parser.copyright_text_valid
+        assert self.test_parser.copyright_text == ""
+        assert self.test_parser.copyright_text_start == ""
 
-        assert self.tstParser.copyrightTextMsg is None
-        assert self.tstParser.copyrightTextTag == self.tstTagMarker.group()
-        assert self.tstParser.copyrightTextOwner == self.tstOwnerData.text
-        assert self.tstParser.copyrightTextEol == self.tstEolMarker.text
-        assert len(self.tstParser.copyrightYearList) == 2
+        assert self.test_parser.copyright_text_msg is None
+        assert self.test_parser.copyright_text_tag == self.tstTagMarker.group()
+        assert self.test_parser.copyright_text_owner == self.tstOwnerData.text
+        assert self.test_parser.copyright_text_eol == self.tstEolMarker.text
+        assert len(self.test_parser.copyright_year_list) == 2
 
     def test002CopyrightSetParsedDataTagNone(self):
         """!
         @brief Test the parse copyright set parsed data, tag=None
         """
         # Test tag none
-        self.tstParser._setParsedCopyrightData("currentMsg", self.tstMsgMarker, None, self.tstYearList,
+        self.test_parser._set_parsed_copyright_data("current_msg", self.tstMsgMarker, None, self.tstYearList,
                                                self.tstOwnerData, self.tstSolText, self.tstEolMarker)
-        assert not self.tstParser.copyrightTextValid
-        assert self.tstParser.copyrightText == ""
+        assert not self.test_parser.copyright_text_valid
+        assert self.test_parser.copyright_text == ""
 
-        assert self.tstParser.copyrightTextStart == self.tstSolText
-        assert self.tstParser.copyrightTextMsg == self.tstMsgMarker.group()
-        assert self.tstParser.copyrightTextTag is None
-        assert self.tstParser.copyrightTextOwner == self.tstOwnerData.text
-        assert self.tstParser.copyrightTextEol == self.tstEolMarker.text
-        assert len(self.tstParser.copyrightYearList) == 2
+        assert self.test_parser.copyright_text_start == self.tstSolText
+        assert self.test_parser.copyright_text_msg == self.tstMsgMarker.group()
+        assert self.test_parser.copyright_text_tag is None
+        assert self.test_parser.copyright_text_owner == self.tstOwnerData.text
+        assert self.test_parser.copyright_text_eol == self.tstEolMarker.text
+        assert len(self.test_parser.copyright_year_list) == 2
 
     def test003CopyrightSetParsedDataYearInvalid(self):
         """!
@@ -385,124 +385,124 @@ class TestClass02CopyrightParserBase:
         """
         # Test year invalid
         invalidYearList = CopyrightYearsList("", r'(\d{4})', 10)
-        self.tstParser._setParsedCopyrightData("currentMsg", self.tstMsgMarker, self.tstTagMarker, invalidYearList,
+        self.test_parser._set_parsed_copyright_data("current_msg", self.tstMsgMarker, self.tstTagMarker, invalidYearList,
                                                self.tstOwnerData, self.tstSolText, self.tstEolMarker)
-        assert not self.tstParser.copyrightTextValid
-        assert self.tstParser.copyrightText == ""
+        assert not self.test_parser.copyright_text_valid
+        assert self.test_parser.copyright_text == ""
 
-        assert self.tstParser.copyrightTextStart == self.tstSolText
-        assert self.tstParser.copyrightTextMsg == self.tstMsgMarker.group()
-        assert self.tstParser.copyrightTextTag == self.tstTagMarker.group()
-        assert self.tstParser.copyrightTextOwner == self.tstOwnerData.text
-        assert self.tstParser.copyrightTextEol == self.tstEolMarker.text
-        assert len(self.tstParser.copyrightYearList) == 0
+        assert self.test_parser.copyright_text_start == self.tstSolText
+        assert self.test_parser.copyright_text_msg == self.tstMsgMarker.group()
+        assert self.test_parser.copyright_text_tag == self.tstTagMarker.group()
+        assert self.test_parser.copyright_text_owner == self.tstOwnerData.text
+        assert self.test_parser.copyright_text_eol == self.tstEolMarker.text
+        assert len(self.test_parser.copyright_year_list) == 0
 
     def test004CopyrightSetParsedDataEOLNone(self):
         """!
         @brief Test the parse copyright set parsed data, eol text = None
         """
         # Test year invalid
-        self.tstParser._setParsedCopyrightData("currentMsg", self.tstMsgMarker, self.tstTagMarker, self.tstYearList,
+        self.test_parser._set_parsed_copyright_data("current_msg", self.tstMsgMarker, self.tstTagMarker, self.tstYearList,
                                                self.tstOwnerData, self.tstSolText, None)
 
-        assert self.tstParser.copyrightTextValid
-        assert self.tstParser.copyrightText == "currentMsg"
+        assert self.test_parser.copyright_text_valid
+        assert self.test_parser.copyright_text == "current_msg"
 
-        assert self.tstParser.copyrightTextStart == self.tstSolText
-        assert self.tstParser.copyrightTextMsg == self.tstMsgMarker.group()
-        assert self.tstParser.copyrightTextTag == self.tstTagMarker.group()
-        assert self.tstParser.copyrightTextOwner == self.tstOwnerData.text
-        assert self.tstParser.copyrightTextEol is None
-        assert len(self.tstParser.copyrightYearList) == 2
+        assert self.test_parser.copyright_text_start == self.tstSolText
+        assert self.test_parser.copyright_text_msg == self.tstMsgMarker.group()
+        assert self.test_parser.copyright_text_tag == self.tstTagMarker.group()
+        assert self.test_parser.copyright_text_owner == self.tstOwnerData.text
+        assert self.test_parser.copyright_text_eol is None
+        assert len(self.test_parser.copyright_year_list) == 2
 
     def test005CopyrightSetParsedDataEOLNone(self):
         """!
         @brief Test the parse copyright set parsed data, eol text = None
         """
         # Test year invalid
-        self.tstParser._setParsedCopyrightData("currentMsg", self.tstMsgMarker, self.tstTagMarker, self.tstYearList,
+        self.test_parser._set_parsed_copyright_data("current_msg", self.tstMsgMarker, self.tstTagMarker, self.tstYearList,
                                                self.tstOwnerData, self.tstSolText, self.tstEolMarker)
 
-        assert self.tstParser.copyrightTextValid
-        assert self.tstParser.copyrightText == "currentMsg"
+        assert self.test_parser.copyright_text_valid
+        assert self.test_parser.copyright_text == "current_msg"
 
-        assert self.tstParser.copyrightTextStart == self.tstSolText
-        assert self.tstParser.copyrightTextMsg == self.tstMsgMarker.group()
-        assert self.tstParser.copyrightTextTag == self.tstTagMarker.group()
-        assert self.tstParser.copyrightTextOwner == self.tstOwnerData.text
-        assert self.tstParser.copyrightTextEol == self.tstEolMarker.text
-        assert len(self.tstParser.copyrightYearList) == 2
+        assert self.test_parser.copyright_text_start == self.tstSolText
+        assert self.test_parser.copyright_text_msg == self.tstMsgMarker.group()
+        assert self.test_parser.copyright_text_tag == self.tstTagMarker.group()
+        assert self.test_parser.copyright_text_owner == self.tstOwnerData.text
+        assert self.test_parser.copyright_text_eol == self.tstEolMarker.text
+        assert len(self.test_parser.copyright_year_list) == 2
 
     def test006CopyrightSetParsedDataOwnerNone(self):
         """!
         @brief Test the parse copyright set parsed data, owner = None
         """
         # Test year invalid
-        self.tstParser._setParsedCopyrightData("currentMsg", self.tstMsgMarker, self.tstTagMarker, self.tstYearList,
+        self.test_parser._set_parsed_copyright_data("current_msg", self.tstMsgMarker, self.tstTagMarker, self.tstYearList,
                                                None, self.tstSolText, self.tstEolMarker)
 
-        assert self.tstParser.copyrightTextValid == False
-        assert self.tstParser.copyrightText == ""
+        assert self.test_parser.copyright_text_valid == False
+        assert self.test_parser.copyright_text == ""
 
-        assert self.tstParser.copyrightTextStart == self.tstSolText
-        assert self.tstParser.copyrightTextMsg == self.tstMsgMarker.group()
-        assert self.tstParser.copyrightTextTag == self.tstTagMarker.group()
-        assert self.tstParser.copyrightTextOwner is None
-        assert self.tstParser.copyrightTextEol == self.tstEolMarker.text
-        assert len(self.tstParser.copyrightYearList) == 2
+        assert self.test_parser.copyright_text_start == self.tstSolText
+        assert self.test_parser.copyright_text_msg == self.tstMsgMarker.group()
+        assert self.test_parser.copyright_text_tag == self.tstTagMarker.group()
+        assert self.test_parser.copyright_text_owner is None
+        assert self.test_parser.copyright_text_eol == self.tstEolMarker.text
+        assert len(self.test_parser.copyright_year_list) == 2
 
     def test007CopyrightAddEOLNone(self):
         """!
         @brief Test the parse copyright add eol marker with eol marker = None
         """
         # Set the EOL marker
-        self.tstParser.copyrightTextEol = None
+        self.test_parser.copyright_text_eol = None
 
-        newCopyRightMsg = self.tstParser._addEolText("Current text")
-        assert newCopyRightMsg == "Current text"
+        new_copyright_msg = self.test_parser._add_eol_text("Current text")
+        assert new_copyright_msg == "Current text"
 
     def test008CopyrightAddEOL(self):
         """!
         @brief Test the parse copyright add eol marker with eol marker = *
         """
         # Set the EOL marker
-        self.tstParser.copyrightText = "* Copyright (c) 2024 X-Men        *"
-        self.tstParser.copyrightTextEol = '*'
+        self.test_parser.copyright_text = "* Copyright (c) 2024 X-Men        *"
+        self.test_parser.copyright_text_eol = '*'
 
-        newCopyRightMsg = self.tstParser._addEolText("* Copyright (c) 2024-2025 X-Men")
-        assert newCopyRightMsg == "* Copyright (c) 2024-2025 X-Men   *"
+        new_copyright_msg = self.test_parser._add_eol_text("* Copyright (c) 2024-2025 X-Men")
+        assert new_copyright_msg == "* Copyright (c) 2024-2025 X-Men   *"
 
     def test009CopyrightAddEOLShort(self):
         """!
         @brief Test the parse copyright add eol marker with eol marker = *
         """
         # Set the EOL marker
-        self.tstParser.copyrightText = "* Copyright (c) 2024 X-Men *"
-        self.tstParser.copyrightTextEol = '*'
+        self.test_parser.copyright_text = "* Copyright (c) 2024 X-Men *"
+        self.test_parser.copyright_text_eol = '*'
 
-        newCopyRightMsg = self.tstParser._addEolText("* Copyright (c) 2024-2025 X-Men")
-        assert newCopyRightMsg == "* Copyright (c) 2024-2025 X-Men*"
+        new_copyright_msg = self.test_parser._add_eol_text("* Copyright (c) 2024-2025 X-Men")
+        assert new_copyright_msg == "* Copyright (c) 2024-2025 X-Men*"
 
 class TestClass03CopyrightParserBaseUniCode:
     """!
     @brief Unit test for the copyright parser class
     """
     def setup_method(self):
-        self.tstParser = CopyrightParse(copyrightSearchMsg = r'Copyright|COPYRIGHT|copyright',
-                                        copyrightSearchTag = r'\([cC]\)',
-                                        copyrightSearchDate = r'(\d{4})',
-                                        copyrightOwnerSpec = r'[a-zA-Z0-9,\./\- @]',
-                                        useUnicode = True)
+        self.test_parser = CopyrightParse(copyright_search_msg = r'Copyright|COPYRIGHT|copyright',
+                                        copyright_search_tag = r'\([cC]\)',
+                                        copyright_search_date = r'(\d{4})',
+                                        copyright_owner_spec = r'[a-zA-Z0-9,\./\- @]',
+                                        use_unicode = True)
 
     def test001CopyrightCheckDefault(self):
         """!
         @brief Test the default CopyrightParse constructor
         """
         # Test default values
-        assert self.tstParser.copyrightTextStart == ""
-        assert self.tstParser.copyrightTextMsg is None
-        assert self.tstParser.copyrightTextTag is None
-        assert self.tstParser.copyrightTextOwner is None
-        assert self.tstParser.copyrightTextEol is None
-        assert not self.tstParser.copyrightTextValid
-        assert len(self.tstParser.copyrightYearList) == 0
+        assert self.test_parser.copyright_text_start == ""
+        assert self.test_parser.copyright_text_msg is None
+        assert self.test_parser.copyright_text_tag is None
+        assert self.test_parser.copyright_text_owner is None
+        assert self.test_parser.copyright_text_eol is None
+        assert not self.test_parser.copyright_text_valid
+        assert len(self.test_parser.copyright_year_list) == 0
