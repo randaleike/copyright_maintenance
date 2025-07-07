@@ -26,7 +26,7 @@ generate updates copyright text
 
 import re
 
-class SubTextMarker(object):
+class SubTextMarker():
     """!
     @brief Regex trimmed substrng text and location information
     """
@@ -47,7 +47,7 @@ class SubTextMarker(object):
         ## Ending position from the start of the input string plus original_start value
         self.end = self.start + len(self.text)
 
-class CopyrightYearsList(object):
+class CopyrightYearsList():
     """!
     Parse dates return data structure
     """
@@ -86,9 +86,10 @@ class CopyrightYearsList(object):
         """
         year_match = re.search(r'(\d{4})', year_str)
         if year_match is not None:
-            return int(year_match.group())
+            int_year = int(year_match.group())
         else:
-            return 1970
+            int_year = 1970
+        return int_year
 
     def is_valid(self)->bool:
         """!
@@ -96,10 +97,7 @@ class CopyrightYearsList(object):
 
         @returns - True if list is not empty, else false
         """
-        if self._intyears:
-            return True
-        else:
-            return False
+        return bool(self._intyears)
 
     def get_numeric_year_list(self)->list:
         """!
@@ -109,16 +107,17 @@ class CopyrightYearsList(object):
         """
         return self._intyears
 
-    def get_first_entry(self):
+    def get_first_entry(self)->int|None:
         """!
         @brief Get the first year entry
 
         @returns Entry 0 or None if the list is empty
         """
         if len(self._intyears) > 0:
-            return self._intyears[0]
+            return_data = self._intyears[0]
         else:
-            return None
+            return_data = None
+        return return_data
 
     def get_last_entry(self)->int|None:
         """!
@@ -127,9 +126,10 @@ class CopyrightYearsList(object):
         @returns Last year entry or None if the list is empty
         """
         if len(self._intyears) > 0:
-            return self._intyears[-1]
+            return_data = self._intyears[-1]
         else:
-            return None
+            return_data = None
+        return return_data
 
     def get_starting_string_index(self)->int:
         """!
@@ -150,7 +150,7 @@ class CopyrightYearsList(object):
         return self._end
 
 
-class CopyrightParse(object):
+class CopyrightParse():
     """!
     @brief Copyright parsing and new message class
 
@@ -247,12 +247,13 @@ class CopyrightParse(object):
 
         @return bool - True if successfully added, else False
         """
+        return_status = False
         if self.copyright_text_valid:
             self.copyright_text_owner += ", "
             self.copyright_text_owner += new_owner
-            return True
-        else:
-            return False
+            return_status = True
+
+        return return_status
 
     def replace_owner(self, new_owner:str)->bool:
         """!
@@ -366,6 +367,7 @@ class CopyrightParse(object):
 
         @return bool - True if regx search criteria matched, else False
         """
+        check_status = False
 
         # Check if all the components exist
         if ((msg_marker is not None) and
@@ -373,10 +375,8 @@ class CopyrightParse(object):
             (year_list.is_valid()) and
             (owner is not None)):
 
-            return True
-        else:
-            # Missing one or more components
-            return False
+            check_status = True
+        return check_status
 
     def _set_parsed_copyright_data(self, current_msg:str, msg_marker:re.Match|None,
                                    tag_marker:re.Match|None, year_list:CopyrightYearsList,
@@ -580,7 +580,6 @@ class CopyrightParseOrder1(CopyrightParse):
             new_copyright_msg = None
 
         return new_copyright_msg
-
 
 class CopyrightParseOrder2(CopyrightParse):
     """!

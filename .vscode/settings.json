@@ -1,6 +1,7 @@
 {
     "pylint.args": [
         "--init-hook",
-        "import sys; sys.path.append('${workspaceFolder}/src')"
+        "import sys; sys.path.append('${workspaceFolder}/src')",
+        "--max-line-length=100"
     ]
 }

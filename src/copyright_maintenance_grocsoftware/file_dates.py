@@ -47,7 +47,7 @@ def debug_print(message_level:int, message:str):
         print ("Debug: "+message)
 
 
-class GetFileSystemYears(object):
+class GetFileSystemYears():
     """!
     File system creation and last modification identification class
     """
@@ -93,7 +93,7 @@ class GetFileSystemYears(object):
             print("ERROR: OS get file times error of time.")
             return None, None
 
-class GetGitArchiveFileYears(object):
+class GetGitArchiveFileYears():
     """!
     File creation and last modification from git archive class
     """
@@ -172,7 +172,7 @@ class GetGitArchiveFileYears(object):
         else:
             return None, None
 
-class GetFileYears(object):
+class GetFileYears():
     """!
     Get the file creation and last modification years for the file
     """

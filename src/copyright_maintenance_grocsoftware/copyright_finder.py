@@ -1,5 +1,7 @@
 """@package copyright_tools
-Scan source files and find the copyright message, parse the copyright into it's component parts and
+@brief Scan source files and find the copyright message
+
+Parse the copyright into it's component parts and
 generate updates copyright text
 """
 #==========================================================================
@@ -26,7 +28,7 @@ generate updates copyright text
 
 from copyright_maintenance_grocsoftware.copyright_tools import CopyrightParseEnglish
 
-class CopyrightFinder(object):
+class CopyrightFinder():
     """!
     Copyright message finder class
     """
@@ -108,6 +110,9 @@ class CopyrightFinder(object):
         """
         copyright_dict_list = []
         start_location = 0
+        return_status = False
+        return_text = None
+
         while True:
             copyright_found, location_dict = self.find_next_copyright_msg(input_file,
                                                                           start_location,
@@ -118,7 +123,7 @@ class CopyrightFinder(object):
             else:
                 break
 
-        if not copyright_dict_list:
-            return False, None
-        else:
-            return True, copyright_dict_list
+        if copyright_dict_list:
+            return_status = True
+            return_text = copyright_dict_list
+        return return_status, return_text

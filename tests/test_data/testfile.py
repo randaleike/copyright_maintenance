@@ -25,7 +25,7 @@ Dummy python test file
 #==========================================================================
 
 
-class SillyClass(object):
+class SillyClass():
     """!
     Dummy class so I can add and find comment blocks
 
@@ -40,4 +40,3 @@ class SillyClass(object):
         @return pass
         """
         self._inputFile = inputFile          ##!< File to parse and look for the copyright message
-

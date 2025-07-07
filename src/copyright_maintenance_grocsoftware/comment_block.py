@@ -28,7 +28,7 @@ Scan source files to find comment block(s). Utility to generate new comment bloc
 import os
 import re
 
-class TextFileCommentBlock(object):
+class TextFileCommentBlock():
     """!
     Identify the start and end of a comment text block
 
@@ -55,15 +55,13 @@ class TextFileCommentBlock(object):
 
         @return bool: True if this line is the start of a comment block, else False
         """
-        if self._foundtext_start:
-            return False
-        else:
+        ret_bool = False
+        if not self._foundtext_start:
             start_match = re.search(r'\S', current_line)
             if start_match is not None:
                 self._foundtext_start = True
-                return True
-            else:
-                return False
+                ret_bool = True
+        return ret_bool
 
     def _is_current_line_comment_end(self, current_line:str)->bool:
         """!
@@ -127,7 +125,7 @@ class TextFileCommentBlock(object):
         # return if we found a comment block
         return comment_block_found
 
-class CommentParams(object):
+class CommentParams():
     """!
     Comment marker definitions and static selection methods
     """
@@ -177,14 +175,14 @@ class CommentParams(object):
         name_ext = os.path.splitext(filename)
         extension = name_ext[1]
 
-        # pylint: disable=locally-disabled, disable=C0201
-        if extension in CommentParams.commentBlockDelim.keys():
-            return CommentParams.commentBlockDelim[extension]
-        else:
-            return None
+        try:
+            ret_data = CommentParams.commentBlockDelim[extension]
+        except KeyError:
+            ret_data = None
 
+        return ret_data
 
-class CommentBlock(object):
+class CommentBlock():
     """!
     Identify the start and end of a comment block
     """

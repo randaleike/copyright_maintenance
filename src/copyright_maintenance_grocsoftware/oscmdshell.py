@@ -221,11 +221,13 @@ def get_command_shell()->LinuxShell|WindowsPowerShell|None:
     @return OS appropriate Command shell object or None if the OS is unknown
     """
     os_type = platform.system()
+    return_shell = None
 
     if os_type == 'Linux':
-        return LinuxShell()
+        return_shell = LinuxShell()
     elif os_type == 'Windows':
-        return WindowsPowerShell()
+        return_shell = WindowsPowerShell()
     else:
         print("ERROR: Unsupported OS "+os_type)
-        return None
+
+    return return_shell

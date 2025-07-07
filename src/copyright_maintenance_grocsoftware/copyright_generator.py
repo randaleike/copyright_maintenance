@@ -26,7 +26,7 @@ generate updates copyright text
 
 from copyright_maintenance_grocsoftware.copyright_tools import CopyrightParseEnglish
 
-class CopyrightGenerator(object):
+class CopyrightGenerator():
     """!
     @brief Copyright message generator
 
@@ -53,13 +53,10 @@ class CopyrightGenerator(object):
 
         @return bool - True if last_modify_year is not None and last_modify_year != create_year
         """
+        result = False
         if last_modify_year is not None:
-            if last_modify_year != create_year:
-                return True
-            else:
-                return False
-        else:
-            return False
+            result = bool(last_modify_year != create_year)
+        return result
 
     def _get_new_copyright_msg(self, create_year:int, last_modify_year:int|None = None)->tuple:
         """
@@ -147,9 +144,10 @@ class CopyrightGenerator(object):
         @return string : New or old copyright message
         """
         if self.parser.is_copyright_text_valid():
-            return self._get_new_copyright_msg(create_year, last_modify_year)
+            return_data = self._get_new_copyright_msg(create_year, last_modify_year)
         else:
-            return self._get_default_copyright_msg(create_year, last_modify_year)
+            return_data = self._get_default_copyright_msg(create_year, last_modify_year)
+        return return_data
 
     def create_copyright_transition(self, create_year:int, transition_year:int,
                                     last_modify_year:int, new_owner:str)->tuple:

@@ -24,7 +24,7 @@ Dummy python test file, no coopyright to find
 #==========================================================================
 
 
-class SillyClass(object):
+class SillyClass():
     """!
     Dummy class so I can add and find comment blocks
 
