@@ -1,4 +1,4 @@
-"""@package comment_tools
+"""@package copyright_maintenance
 @brief Comment block find and generate tools
 Scan source files to find comment block(s). Utility to generate new comment blocks
 """
@@ -47,7 +47,7 @@ class TextFileCommentBlock():
         ## False until a non-blank line is found
         self._foundtext_start = False
 
-    def _is_current_line_comment_start(self, current_line:str)->bool:
+    def is_current_line_comment_start(self, current_line:str)->bool:
         """!
         @brief Determine if the input current line is the start of a comment block
 
@@ -55,15 +55,17 @@ class TextFileCommentBlock():
 
         @return bool: True if this line is the start of a comment block, else False
         """
-        ret_bool = False
+        is__current_start = False
+
         if not self._foundtext_start:
             start_match = re.search(r'\S', current_line)
             if start_match is not None:
                 self._foundtext_start = True
-                ret_bool = True
-        return ret_bool
+                is__current_start = True
 
-    def _is_current_line_comment_end(self, current_line:str)->bool:
+        return is__current_start
+
+    def is_current_line_comment_end(self, current_line:str)->bool:
         """!
         @brief Check if the line is the end of a comment block
 
@@ -71,15 +73,15 @@ class TextFileCommentBlock():
 
         @return bool: True if the current line is the end of a comment block, else False
         """
+        is_current_end = False
+
         if self._foundtext_start:
             end_match = re.search(r'\S', current_line)
-            if end_match is not None:
-                return False
-            else:
+            if end_match is None:
                 self._foundtext_start = False     # Reset text file block start
-                return True
-        else:
-            return False
+                is_current_end = True
+
+        return is_current_end
 
     def find_next_comment_block(self):
         """!
@@ -110,10 +112,10 @@ class TextFileCommentBlock():
                 break
 
             # Check for comment block start or end
-            if self._is_current_line_comment_start(current_line):
+            if self.is_current_line_comment_start(current_line):
                 # Process comment block start
                 self.comment_blk_strt_off = current_line_offset
-            elif self._is_current_line_comment_end(current_line):
+            elif self.is_current_line_comment_end(current_line):
                 # Process comment block end
                 self.comment_blk_eol_off = current_line_offset + len(current_line)
                 comment_block_found = True
@@ -125,7 +127,7 @@ class TextFileCommentBlock():
         # return if we found a comment block
         return comment_block_found
 
-class CommentParams():
+class CommentParams(): # pylint: disable=too-few-public-methods
     """!
     Comment marker definitions and static selection methods
     """
@@ -206,7 +208,7 @@ class CommentBlock():
         ## Comment block markers typical for the file type
         self.comment_data = comment_markers
 
-    def _is_current_line_comment_start(self, current_line:str)->bool:
+    def is_current_line_comment_start(self, current_line:str)->bool:
         """!
         @brief Determine if the input current line is the start of a comment block
 
@@ -235,7 +237,7 @@ class CommentBlock():
                 return True
         return False
 
-    def _is_current_line_comment_end(self, current_line:str)->bool:
+    def is_current_line_comment_end(self, current_line:str)->bool:
         """!
         @brief Check if the line is the end of a comment block
 
@@ -289,14 +291,14 @@ class CommentBlock():
 
             # Check for comment block start or end
             if self.comment_blk_strt_off is None:
-                if self._is_current_line_comment_start(current_line):
+                if self.is_current_line_comment_start(current_line):
                     # Process comment block start
                     self.comment_blk_strt_off = current_line_offset
                 elif self._is_previous_line_comment_start(previous_line, current_line):
                     # Process comment block start
                     self.comment_blk_strt_off = previous_line_off
             else:
-                if self._is_current_line_comment_end(current_line):
+                if self.is_current_line_comment_end(current_line):
                     # Process comment block end
                     self.comment_blk_sol_off = current_line_offset
                     self.comment_blk_eol_off = current_line_offset + len(current_line)

@@ -1,4 +1,4 @@
-"""@package test_programmer_tools
+"""@package copyright_maintenance_unittest
 Unittest for copyright maintenance utility
 """
 
@@ -36,7 +36,7 @@ from copyright_maintenance_grocsoftware.file_dates import debug_print
 
 from copyright_maintenance_grocsoftware.file_dates import GetFileSystemYears
 from copyright_maintenance_grocsoftware.file_dates import GetGitArchiveFileYears
-from copyright_maintenance_grocsoftware.file_dates import GetFileYears
+from copyright_maintenance_grocsoftware.file_dates import get_file_years
 
 TEST_FILE_BASE_DIR = TEST_FILE_PATH
 
@@ -58,25 +58,25 @@ def test002_debug_message_equal(capsys):
 
 def test003_get_filesystem_years_local_time_overflow(capsys):
     """!
-    Test _cvt_timestamp_to_year(), Overflow error
+    Test cvt_timestamp_to_year(), Overflow error
     """
     mock_local_time = time.time()
     with patch('time.localtime', MagicMock(return_value = mock_local_time)) as mock_time_patch:
         mock_time_patch.side_effect = OverflowError(mock_time_patch)
         test_obj = GetFileSystemYears("testfile")
-        year = test_obj._cvt_timestamp_to_year(mock_local_time)
+        year = test_obj.cvt_timestamp_to_year(mock_local_time)
         assert year is None
         assert capsys.readouterr().out == "ERROR: Overflow error on conversion of time epoch.\n"
 
 def test004_get_filesystem_years_local_time_os_error(capsys):
     """!
-    Test _cvt_timestamp_to_year(), OS error
+    Test cvt_timestamp_to_year(), OS error
     """
     mock_local_time = time.time()
     with patch('time.localtime', MagicMock(return_value = mock_local_time)) as mock_time_patch:
         mock_time_patch.side_effect = OSError(mock_time_patch)
         test_obj = GetFileSystemYears("testfile")
-        year = test_obj._cvt_timestamp_to_year(mock_local_time)
+        year = test_obj.cvt_timestamp_to_year(mock_local_time)
         assert year is None
         assert capsys.readouterr().out == "ERROR: OS converstion error of time epoch.\n"
 
@@ -122,7 +122,7 @@ def test007_get_filesystem_years_file_pass(capsys):
 
 def test008_get_creation_year_pass():
     """!
-    Test _get_creation_year(), Git cmd pass
+    Test get_creation_year(), Git cmd pass
     """
     ret_code_pass = subprocess.CompletedProcess("git",
                                                 0,
@@ -130,12 +130,12 @@ def test008_get_creation_year_pass():
                                                 "")
     with patch('subprocess.run', MagicMock(return_value = ret_code_pass)):
         test_obj = GetGitArchiveFileYears("testfile")
-        year = test_obj._get_creation_year()
+        year = test_obj.get_creation_year()
         assert year == '2022'
 
 def test009_get_creation_year_git_fail(capsys):
     """!
-    Test _get_creation_year(), Git cmd failed
+    Test get_creation_year(), Git cmd failed
     """
     ret_code_fail = subprocess.CompletedProcess("git",
                                                 2,
@@ -143,27 +143,27 @@ def test009_get_creation_year_git_fail(capsys):
                                                 "")
     with patch('subprocess.run', MagicMock(return_value = ret_code_fail)):
         test_obj = GetGitArchiveFileYears("testfile")
-        year = test_obj._get_creation_year()
+        year = test_obj.get_creation_year()
         assert year is None
         assert capsys.readouterr().out == "ERROR: Git creation date failed: git error msg\n"
 
 def test010_get_creation_year_system_failure(capsys):
     """!
-    Test _get_creation_year(), Git subprocess failure
+    Test get_creation_year(), Git subprocess failure
     """
     ret_code_error = subprocess.CompletedProcess("", 2, "git error msg", "")
     with patch('subprocess.run', MagicMock(return_value = ret_code_error)) as subproc:
         subproc.side_effect = subprocess.CalledProcessError(2, "git_cmd", "", "git error msg")
 
         test_obj = GetGitArchiveFileYears("testfile")
-        year = test_obj._get_creation_year()
+        year = test_obj.get_creation_year()
         assert year is None
         assert capsys.readouterr().out == "ERROR: Git creation date command failed for " \
                                           "file: testfile\n"
 
 def test011_get_last_mod_year_pass():
     """!
-    Test _get_last_modification_year(), Git cmd pass
+    Test get_last_modification_year(), Git cmd pass
     """
     ret_code_pass = subprocess.CompletedProcess("git",
                                                 0,
@@ -171,12 +171,12 @@ def test011_get_last_mod_year_pass():
                                                 "")
     with patch('subprocess.run', MagicMock(return_value = ret_code_pass)):
         test_obj = GetGitArchiveFileYears("testfile")
-        year = test_obj._get_last_modification_year()
+        year = test_obj.get_last_modification_year()
         assert year == '2023'
 
 def test012_get_last_mod_year_git_fail(capsys):
     """!
-    Test _get_last_modification_year(), Git cmd failed
+    Test get_last_modification_year(), Git cmd failed
     """
     ret_code_fail = subprocess.CompletedProcess("git",
                                                 2,
@@ -184,20 +184,20 @@ def test012_get_last_mod_year_git_fail(capsys):
                                                 "")
     with patch('subprocess.run', MagicMock(return_value = ret_code_fail)):
         test_obj = GetGitArchiveFileYears("testfile")
-        year = test_obj._get_last_modification_year()
+        year = test_obj.get_last_modification_year()
         assert year is None
         assert capsys.readouterr().out == "ERROR: Git last modification date failed: " \
                                     "git error msg\n"
 
 def test013_get_last_mod_year_system_failure(capsys):
     """!
-    Test _get_last_modification_year(), Git subprocess failure
+    Test get_last_modification_year(), Git subprocess failure
     """
     ret_code_error = subprocess.CompletedProcess("", 2, "git error msg", "")
     with patch('subprocess.run', MagicMock(return_value = ret_code_error)) as subproc:
         subproc.side_effect = subprocess.CalledProcessError(2, "git_cmd", "", "git error msg")
         test_obj = GetGitArchiveFileYears("testfile")
-        year = test_obj._get_last_modification_year()
+        year = test_obj.get_last_modification_year()
         assert year is None
         assert capsys.readouterr().out == "ERROR: Git last modification date command failed " \
                                           "for file: testfile\n"
@@ -383,8 +383,7 @@ def test017_get_year_git():
         with patch('os.path.isfile', MagicMock(return_value = True)):
             with patch('os.path.isdir', MagicMock(return_value = True)):
                 with patch('subprocess.run', MagicMock(side_effect = mockrun)):
-                    test_obj = GetFileYears("testfile")
-                    startyear, modify_year = test_obj.get_file_years()
+                    startyear, modify_year = get_file_years("testfile")
                     assert startyear == '2022'
                     assert modify_year == '2025'
 
@@ -406,8 +405,7 @@ def test018_get_year_file_system():
             expected_str = time.strftime("%Y", time.localtime(mock_local_time))
             with patch('os.path.getctime', MagicMock(return_value = mock_local_time)):
                 with patch('os.path.getmtime', MagicMock(return_value = mock_local_time)):
-                    test_obj = GetFileYears("testfile")
-                    startyear, modify_year = test_obj.get_file_years()
+                    startyear, modify_year = get_file_years("testfile")
                     assert startyear == expected_str
                     assert modify_year == expected_str
 
@@ -430,8 +428,7 @@ def test019_get_year_file_system_git_not_dir():
                 expected_str = time.strftime("%Y", time.localtime(mock_local_time))
                 with patch('os.path.getctime', MagicMock(return_value = mock_local_time)):
                     with patch('os.path.getmtime', MagicMock(return_value = mock_local_time)):
-                        test_obj = GetFileYears("testfile")
-                        startyear, modify_year = test_obj.get_file_years()
+                        startyear, modify_year = get_file_years("testfile")
                         assert startyear == expected_str
                         assert modify_year == expected_str
 
@@ -450,8 +447,7 @@ def test020_get_years_fail_no_file(capsys):
     with patch('os.path.exists', MagicMock(side_effect = exist_return)):
         with patch('os.path.isfile', MagicMock(return_value = True)):
             with patch('os.path.isdir', MagicMock(return_value = True)):
-                test_obj = GetFileYears("testfile")
-                startyear, modify_year = test_obj.get_file_years()
+                startyear, modify_year = get_file_years("testfile")
                 assert startyear is None
                 assert modify_year is None
                 expected = "ERROR: File: \"testfile\" does not exist or is not a file.\n"
@@ -472,8 +468,7 @@ def test021_get_years_fail_not_file(capsys):
     with patch('os.path.exists', MagicMock(side_effect = exist_return)):
         with patch('os.path.isfile', MagicMock(return_value = False)):
             with patch('os.path.isdir', MagicMock(return_value = True)):
-                test_obj = GetFileYears("testfile")
-                startyear, modify_year = test_obj.get_file_years()
+                startyear, modify_year = get_file_years("testfile")
                 assert startyear is None
                 assert modify_year is None
                 expected = "ERROR: File: \"testfile\" does not exist or is not a file.\n"
@@ -482,8 +477,7 @@ def test021_get_years_fail_not_file(capsys):
     with patch('os.path.exists', MagicMock(side_effect = exist_return)):
         with patch('os.path.isfile', MagicMock(return_value = False)):
             with patch('os.path.isdir', MagicMock(return_value = True)):
-                test_obj = GetFileYears("testfile")
-                startyear, modify_year = test_obj.get_file_years()
+                startyear, modify_year = get_file_years("testfile")
                 assert startyear is None
                 assert modify_year is None
                 expected = "ERROR: File: \"testfile\" does not exist or is not a file.\n"

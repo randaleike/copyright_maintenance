@@ -1,4 +1,6 @@
-"""@package copyright_tools
+"""@package copyright_maintenance
+@brief Copyright message parser tools
+
 Scan source files and find the copyright message, parse the copyright into it's component parts and
 generate updates copyright text
 """
@@ -46,6 +48,27 @@ class SubTextMarker():
         self.start = original_start + (len(new_text) - len(trimed_text))
         ## Ending position from the start of the input string plus original_start value
         self.end = self.start + len(self.text)
+
+    def get_text(self)->str:
+        """!
+        @brief Get the trimmed text value
+        @return string - Trimmed text value
+        """
+        return self.text
+
+    def get_start(self)->int:
+        """!
+        @brief Get the starting text position in the original string
+        @return int - Original string starting position
+        """
+        return self.start
+
+    def get_end(self)->int:
+        """!
+        @brief Get the ending text position in the original string
+        @return int - Original string ending position
+        """
+        return self.end
 
 class CopyrightYearsList():
     """!
@@ -149,7 +172,6 @@ class CopyrightYearsList():
         """
         return self._end
 
-
 class CopyrightParse():
     """!
     @brief Copyright parsing and new message class
@@ -158,7 +180,6 @@ class CopyrightParse():
     component parts and generate a new copyright message if the copyright
     years change.
     """
-
     def __init__(self, copyright_search_msg:str, copyright_search_tag:str,
                  copyright_search_date:str, copyright_owner_spec:str,
                  use_unicode:bool = False):
@@ -524,8 +545,9 @@ class CopyrightParseOrder1(CopyrightParse):
         self._set_parsed_copyright_data(copyright_string, msg_marker, tag_marker,
                                         year_list, owner_data, sol_text, eol_data)
 
-    def _create_copyright_msg(self, owner:str, copyright_msg_text:str, copyright_tag_text:str,
-                            create_year:int, last_modify_year:int|None = None)->str:
+    def _create_copyright_msg(self, owner:str, copyright_msg_text:str,
+                              copyright_tag_text:str, create_year:int,
+                              last_modify_year:int|None = None)->str:
         """!
         @brief Generate a new multiple year copyright message for the input
                creation year with the parsed copyright message, tag and owner
@@ -662,8 +684,11 @@ class CopyrightParseOrder2(CopyrightParse):
         self._set_parsed_copyright_data(copyright_string, msg_marker, tag_marker,
                                         year_list, owner_data, sol_text, eol_data)
 
-    def _create_copyright_msg(self, owner:str, copyright_msg_text:str, copyright_tag_text:str,
-                            create_year:int, last_modify_year:int|None = None)->str:
+    def _create_copyright_msg(self, owner:str,
+                              copyright_msg_text:str,
+                              copyright_tag_text:str,
+                              create_year:int,
+                              last_modify_year:int|None = None)->str:
         """!
         @brief Generate a new multiple year copyright message for the input
                creation year with the parsed copyright message, tag and owner
@@ -771,6 +796,8 @@ class CopyrightParseEnglish(CopyrightParseOrder1):
 
         @return string : New copyright message
         """
-        return self._create_copyright_msg(owner, CopyrightParseEnglish.defaultCopyrightMsgText,
-                                        CopyrightParseEnglish.defaultCopyrightTagText,
-                                        create_year, last_modify_year)
+        return self._create_copyright_msg(owner,
+                                          CopyrightParseEnglish.defaultCopyrightMsgText,
+                                          CopyrightParseEnglish.defaultCopyrightTagText,
+                                          create_year,
+                                          last_modify_year)

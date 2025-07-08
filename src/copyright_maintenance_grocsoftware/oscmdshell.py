@@ -1,5 +1,5 @@
-"""@package utility
-Common utility functions
+"""@package copyright_maintenance
+OS shell utility functions
 """
 
 #==========================================================================
@@ -52,7 +52,7 @@ class LinuxShell:
             output_file = None
         else:
             try:
-                output_file = open(output_file_name, 'wt', encoding='utf-8')
+                output_file = open(output_file_name, 'wt', encoding='utf-8') # pylint: disable=consider-using-with
             except OSError:
                 print("ERROR: Output file creation "+output_file_name+" failed")
                 return False

@@ -1,4 +1,4 @@
-"""@package test_programmer_tools
+"""@package copyright_maintenance_unittest
 Unittest for copyright maintenance utility
 """
 #==========================================================================

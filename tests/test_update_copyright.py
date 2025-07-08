@@ -1,4 +1,4 @@
-"""@package test_programmer_tools
+"""@package copyright_maintenance_unittest
 Unittest for copyright maintenance utility
 """
 
@@ -38,12 +38,11 @@ from copyright_maintenance_grocsoftware.copyright_tools import CopyrightParseOrd
 from copyright_maintenance_grocsoftware.copyright_tools import CopyrightParseEnglish
 from copyright_maintenance_grocsoftware.comment_block import CommentParams
 
-from copyright_maintenance_grocsoftware.file_dates import GetFileYears
+from copyright_maintenance_grocsoftware.file_dates import get_file_years
 from copyright_maintenance_grocsoftware.oscmdshell import get_command_shell
 from copyright_maintenance_grocsoftware.update_copyright import CopyrightCommentBlock
 from copyright_maintenance_grocsoftware.update_copyright import update_copyright_years
 from copyright_maintenance_grocsoftware.update_copyright import insert_new_copyright_block
-import copyright_maintenance_grocsoftware.update_copyright as update_copyright
 
 
 TEST_FILE_BASE_DIR = TEST_FILE_PATH
@@ -267,8 +266,7 @@ class TestClass02CopyrightUpdate:
         @brief On test start set the filename
         """
         cls._testFileName = os.path.join(TEST_FILE_BASE_DIR, "copyrighttest.h")
-        file_dates = GetFileYears(cls._testFileName)
-        _, expected = file_dates.get_file_years()
+        _, expected = get_file_years(cls._testFileName)
         copyright_gen = CopyrightParseEnglish()
         cls._yearStr = copyright_gen._build_copyright_year_string(2022, expected)
 
@@ -543,44 +541,3 @@ class TestClass03InsertNewCopyrightBlock:
             handle.write.assert_any_call('void uselessFunction2(int nothing);\n')
             handle.write.assert_any_call('/** @} */')
             # pylint: enable=line-too-long
-
-class TestClass04Misc:
-    """!
-    @brief Test the debug_print function
-    """
-    @classmethod
-    def teardown_class(cls):
-        """!
-        @brief On test teardown close the file
-        """
-        update_copyright.DEBUG_LEVEL = update_copyright.DBG_MSG_NONE
-
-    def test001_debug_none(self):
-        """!
-        Test debug_print(), current level < message level
-        """
-        output = io.StringIO()
-        with contextlib.redirect_stdout(output):
-            update_copyright.DEBUG_LEVEL = update_copyright.DBG_MSG_NONE
-            update_copyright.debug_print(update_copyright.DBG_MSG_MINIMAL, "test message")
-            assert output.getvalue() == ""
-
-    def test002_debug_message_equal(self):
-        """!
-        Test debug_print(), current level == message level
-        """
-        output = io.StringIO()
-        with contextlib.redirect_stdout(output):
-            update_copyright.DEBUG_LEVEL = update_copyright.DBG_MSG_MINIMAL
-            update_copyright.debug_print(update_copyright.DBG_MSG_MINIMAL, "test message")
-            assert output.getvalue() == "Debug: test message\n"
-
-    def test003_debug_message_lt(self):
-        """!
-        Test debug_print(), current level < message level
-        """
-        output = io.StringIO()
-        with contextlib.redirect_stdout(output):
-            update_copyright.DEBUG_LEVEL = update_copyright.DBG_MSG_VERYVERBOSE
-            update_copyright.debug_print(update_copyright.DBG_MSG_MINIMAL, "test message")
-            assert output.getvalue() == "Debug: test message\n"

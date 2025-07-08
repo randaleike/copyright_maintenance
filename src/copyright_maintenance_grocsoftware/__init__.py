@@ -1,4 +1,4 @@
-"""@package file_date
+"""@package copyright_maintenance
 Utilities to get the creation and last modification years of a file
 """
 

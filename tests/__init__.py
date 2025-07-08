@@ -1,5 +1,5 @@
-"""@package test_programmer_tools
-Unittest for programmer base tools utility
+"""@package copyright_maintenance_unittest
+Unittests for copyright maintenance tools
 """
 
 #==========================================================================

@@ -1,4 +1,4 @@
-"""@package copyright_tools
+"""@package copyright_maintenance
 @brief Scan source files and find the copyright message
 
 Parse the copyright into it's component parts and

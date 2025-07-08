@@ -1,6 +1,5 @@
-"""@package update_copyright
-Scan source files and update copyright years
-
+"""@package upcopyright_maintenancedate_copyright
+@brief Scan source files and update copyright years
 Scan the source files and update the copyright year in the header section of any modified files
 """
 
@@ -28,7 +27,7 @@ Scan the source files and update the copyright year in the header section of any
 
 import datetime
 
-from copyright_maintenance_grocsoftware.file_dates import GetFileYears
+from copyright_maintenance_grocsoftware.file_dates import get_file_years
 from copyright_maintenance_grocsoftware.oscmdshell import get_command_shell
 
 from copyright_maintenance_grocsoftware.copyright_tools import CopyrightParseEnglish
@@ -36,24 +35,6 @@ from copyright_maintenance_grocsoftware.copyright_generator import CopyrightGene
 from copyright_maintenance_grocsoftware.copyright_finder import CopyrightFinder
 from copyright_maintenance_grocsoftware.comment_block import CommentBlock
 from copyright_maintenance_grocsoftware.comment_block import CommentParams
-
-DBG_MSG_NONE = 0
-DBG_MSG_MINIMAL = 1
-DBG_MSG_VERBOSE = 2
-DBG_MSG_VERYVERBOSE = 3
-DEBUG_LEVEL = DBG_MSG_NONE
-
-def debug_print(message_level, message):
-    """
-    @brief Print a debug message to the console if the input message level is
-           greater than or equal to the current global debug threshold.
-
-    @param message_level (int): Debug level (DBG_MSG_MINIMAL | DBG_MSG_VERBOSE
-                                            | DBG_MSG_VERYVERBOSE) of the input message.
-    @param message (string): Debug message text.
-    """
-    if DEBUG_LEVEL >= message_level:
-        print ("Debug: "+message)
 
 class CopyrightCommentBlock(CommentBlock):
     """!
@@ -103,11 +84,13 @@ class CopyrightCommentBlock(CommentBlock):
         if (comment_blk_strt_off is not None) and (comment_blk_end_off is not None):
             self.input_file.seek(comment_blk_strt_off)
             copyright_finder = CopyrightFinder(self._copyright_parser)
-            return copyright_finder.find_next_copyright_msg(self.input_file,
-                                                            comment_blk_strt_off,
-                                                            comment_blk_end_off)
+            status, data = copyright_finder.find_next_copyright_msg(self.input_file,
+                                                                    comment_blk_strt_off,
+                                                                    comment_blk_end_off)
         else:
-            return False, None
+            status = False
+            data = None
+        return status, data
 
     def _is_find_next_copyright_block(self)->dict:
         """!
@@ -178,7 +161,7 @@ class CopyrightCommentBlock(CommentBlock):
 
 def insert_new_copyright_block(input_file, output_filename:str, comment_block_data:dict,
                                comment_marker:dict, new_copyright_msg:str,
-                               new_eula:list|None = None)->bool:
+                               new_eula:list|None = None)->bool: # pylint: disable=too-many-arguments
     """!
     @brief Write a new file with the updated copyright message
 
@@ -192,7 +175,7 @@ def insert_new_copyright_block(input_file, output_filename:str, comment_block_da
 
     @return Bool - True if new file was written, False if an error occured.
     """
-    try:
+    try: # pylint: disable=consider-using-with
         output_file = open(output_filename, mode='wt', encoding="utf-8")
 
         # Copy the first chunk of the file
@@ -252,8 +235,7 @@ def update_copyright_years(filename:str):
 
     @param filename(string): path and name of file to update
     """
-    file_year_query = GetFileYears(filename)
-    creation_year_str, modify_year_str = file_year_query.get_file_years()
+    creation_year_str, modify_year_str = get_file_years(filename)
 
     if creation_year_str is None:
         print ("None returned from get_file_years() for creation year")
@@ -266,9 +248,6 @@ def update_copyright_years(filename:str):
         modification_year = datetime.datetime.now().year
     else:
         modification_year = int(modify_year_str)
-
-    debug_print(DBG_MSG_MINIMAL, "Creation Year:     "+str(creation_year))
-    debug_print(DBG_MSG_MINIMAL, "Modification Year: "+str(modification_year))
 
     with open(filename, "rt", encoding="utf-8") as testfile:
         # Get a copyright message parser and comment block parser
@@ -288,9 +267,5 @@ def update_copyright_years(filename:str):
             # Get the new message
             msg_changed, new_msg = copyright_generator.get_new_copyright_msg(creation_year,
                                                                              modification_year)
-            debug_print(DBG_MSG_MINIMAL, "Old copyright: "+old_msg)
-            debug_print(DBG_MSG_MINIMAL, "New copyright: "+new_msg)
-            debug_print(DBG_MSG_MINIMAL, "New copyright changed: "+str(msg_changed))
-
             if msg_changed:
                 get_command_shell().stream_edit(filename, old_msg, new_msg)

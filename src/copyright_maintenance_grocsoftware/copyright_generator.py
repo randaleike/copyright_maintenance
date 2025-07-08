@@ -1,4 +1,4 @@
-"""@package copyright_tools
+"""@package copyright_maintenance
 Scan source files and find the copyright message, parse the copyright into it's component parts and
 generate updates copyright text
 """
@@ -171,7 +171,7 @@ class CopyrightGenerator():
                                                                 True)
         return msg_changed, original_copyright, new_copyright_msg
 
-    def add_copyright_owner(self, create_year:int, last_modify_year:int, new_owner:str)->tuple:
+    def add_copyright_owner(self, create_year:int, last_modify_year:int, new_owner:str)->tuple|None:
         """!
         @brief Modify the old copyright message to end with the transition year input and
                create a new copyright message with the transition year and new owner
@@ -183,13 +183,15 @@ class CopyrightGenerator():
         @return bool: True is the copyright dates changed, else false
         @return string : New owner copyright message
         """
+        return_status = False
+        return_data = None
         if self.parser.add_owner(new_owner):
             new_copyright_msg = self.parser.build_new_copyright_msg(create_year,
                                                                     last_modify_year,
                                                                     True)
-            return True, new_copyright_msg
-        else:
-            return False, None
+            return_status = True
+            return_data = new_copyright_msg
+        return return_status, return_data
 
     def create_new_copyright(self, owner:str, create_year:int,
                              last_modify_year:int|None = None)->str:

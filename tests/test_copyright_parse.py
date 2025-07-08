@@ -1,4 +1,4 @@
-"""@package test_programmer_tools
+"""@package copyright_maintenance_unittest
 Unittest for copyright maintenance utility
 """
 #==========================================================================
@@ -35,28 +35,25 @@ TEST_FILE_BASE_DIR = TEST_FILE_PATH
 
 # pylint: disable=protected-access
 
-class TestClass06CopyrightParserEnglish:
+## @brief Unit test for the english copyright parser class
+def test001_copyright_english_check_default():
     """!
-    @brief Unit test for the english copyright parser class
+    @brief Test create_copyright_msg.  Everything else was tested in the base and
+            order unit tests
     """
-    def test001_copyright_check_default(self):
-        """!
-        @brief Test create_copyright_msg.  Everything else was tested in the base and
-               order unit tests
-        """
-        test_parser = CopyrightParseEnglish()
+    test_parser = CopyrightParseEnglish()
 
-        test_string = test_parser.create_copyright_msg("James Kirk", 2024, 2024)
-        assert test_string == "Copyright (c) 2024 James Kirk"
+    test_string = test_parser.create_copyright_msg("James Kirk", 2024, 2024)
+    assert test_string == "Copyright (c) 2024 James Kirk"
 
-        test_string = test_parser.create_copyright_msg("James Kirk", 2022, 2024)
-        assert test_string == "Copyright (c) 2022-2024 James Kirk"
+    test_string = test_parser.create_copyright_msg("James Kirk", 2022, 2024)
+    assert test_string == "Copyright (c) 2022-2024 James Kirk"
 
-        test_string = test_parser.create_copyright_msg("Mr. Spock", 2024, None)
-        assert test_string == "Copyright (c) 2024 Mr. Spock"
+    test_string = test_parser.create_copyright_msg("Mr. Spock", 2024, None)
+    assert test_string == "Copyright (c) 2024 Mr. Spock"
 
-        test_string = test_parser.create_copyright_msg("Mr. Spock", 2023)
-        assert test_string == "Copyright (c) 2023 Mr. Spock"
+    test_string = test_parser.create_copyright_msg("Mr. Spock", 2023)
+    assert test_string == "Copyright (c) 2023 Mr. Spock"
 
 class TestClass07CopyrightGenerator:
     """!

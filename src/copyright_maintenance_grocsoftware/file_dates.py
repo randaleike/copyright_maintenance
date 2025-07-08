@@ -1,4 +1,4 @@
-"""@package file_date
+"""@package copyright_maintenance
 Determine the creation date and last modification date of a given file
 """
 
@@ -58,7 +58,7 @@ class GetFileSystemYears():
         """
         self._file_path = file_path
 
-    def _cvt_timestamp_to_year(self, seconds:float) -> str|None:
+    def cvt_timestamp_to_year(self, seconds:float) -> str|None:
         """!
         @brief Convert the input seconds timestamp to the year value
         @param seconds (float) Number of seconds since 01-Jan-1970
@@ -85,8 +85,8 @@ class GetFileSystemYears():
             creation_time     = os.path.getctime(self._file_path)
             modification_time = os.path.getmtime(self._file_path)
 
-            creation_year     = self._cvt_timestamp_to_year(creation_time)
-            modification_year = self._cvt_timestamp_to_year(modification_time)
+            creation_year     = self.cvt_timestamp_to_year(creation_time)
+            modification_year = self.cvt_timestamp_to_year(modification_time)
             return creation_year, modification_year
 
         except OSError:
@@ -105,7 +105,7 @@ class GetGitArchiveFileYears():
         ## Path/file name of the file to process
         self._file_path = file_path
 
-    def _get_creation_year(self)->str|None:
+    def get_creation_year(self)->str|None:
         """!
         @brief Get the file creation year from the git archive
         @return str|None - creation year string or None if the git call failed
@@ -121,14 +121,15 @@ class GetGitArchiveFileYears():
             start_output = git_start.stdout.decode('utf-8')
             if git_start.returncode != 0:
                 print("ERROR: Git creation date failed: "+str(start_output))
-                return None
+                ret_str = None
             else:
-                return start_output[:4]
+                ret_str = start_output[:4]
+            return ret_str
         except subprocess.CalledProcessError:
             print("ERROR: Git creation date command failed for file: "+self._file_path)
             return None
 
-    def _get_last_modification_year(self)->str|None:
+    def get_last_modification_year(self)->str|None:
         """!
         @brief Get the file last modification year from the git archive
         @return str|None - last modification year string or None if the git call failed
@@ -144,9 +145,10 @@ class GetGitArchiveFileYears():
             mod_output = gitmod.stdout.decode('utf-8')
             if gitmod.returncode != 0:
                 print("ERROR: Git last modification date failed: "+str(mod_output))
-                return None
+                ret_str = None
             else:
-                return mod_output[:4]
+                ret_str = mod_output[:4]
+            return ret_str
         except subprocess.CalledProcessError:
             print("ERROR: Git last modification date command failed for file: "+self._file_path)
             return None
@@ -157,43 +159,36 @@ class GetGitArchiveFileYears():
         @return tuple - creation year string, last modification year string
         """
         # Get the date file was added to the archive
-        start_output = self._get_creation_year()
+        start_output = self.get_creation_year()
+        create_yr = None
+        last_mod_yr = None
 
         # Check for error
         if start_output is not None:
             # Get the date file was last modified in the archive
-            mod_output = self._get_last_modification_year()
+            mod_output = self.get_last_modification_year()
 
             # Check for error
-            if mod_output is None:
-                return None, None
-            else:
-                return start_output, mod_output
-        else:
-            return None, None
+            if mod_output is not None:
+                create_yr = start_output
+                last_mod_yr = mod_output
 
-class GetFileYears():
+        return create_yr, last_mod_yr
+
+def get_file_years(file_path:str)->tuple:
     """!
-    Get the file creation and last modification years for the file
+    @brief Get the file creation year and last modification n year
+    @param file_path {string} Path/Filename of file to fetch years from
+    @return tuple - creation year string, last modification year string
     """
-    def __init__(self, file_path:str):
-        """!
-        @brief Constructor
-        @param file_path (string): Path and file name of the file to query
-        """
-        self._file_path = file_path
+    create_yr = None
+    last_mod_yr = None
 
-    def get_file_years(self)->tuple:
-        """Get the file creation year and last modification n year
-
-        Returns:
-            tuple creation year string, last modification year string
-        """
-        if (os.path.exists(self._file_path) and (os.path.isfile(self._file_path))):
-            if (os.path.exists(".git") and (os.path.isdir(".git"))):
-                return GetGitArchiveFileYears(self._file_path).get_file_years()
-            else:
-                return GetFileSystemYears(self._file_path).get_file_years()
+    if (os.path.exists(file_path) and (os.path.isfile(file_path))):
+        if (os.path.exists(".git") and (os.path.isdir(".git"))):
+            create_yr, last_mod_yr = GetGitArchiveFileYears(file_path).get_file_years()
         else:
-            print("ERROR: File: \""+self._file_path+"\" does not exist or is not a file.")
-            return None, None
+            create_yr, last_mod_yr =  GetFileSystemYears(file_path).get_file_years()
+    else:
+        print("ERROR: File: \""+file_path+"\" does not exist or is not a file.")
+    return create_yr, last_mod_yr
