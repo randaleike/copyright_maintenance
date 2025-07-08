@@ -32,7 +32,7 @@ from unittest.mock import patch, MagicMock, mock_open
 import _io
 import pytest
 
-from dir_init import TEST_FILE_PATH
+from tests.dir_init import TEST_FILE_PATH
 
 from copyright_maintenance_grocsoftware.copyright_tools import CopyrightParseOrder1
 from copyright_maintenance_grocsoftware.copyright_tools import CopyrightParseEnglish
@@ -69,21 +69,25 @@ class TestClass01CopyrightBlock:
         """!
         @brief On test start set the filename
         """
-        cls._testFileName = os.path.join(TEST_FILE_BASE_DIR, "copyrighttest.h")
-        cls._testFile = open(cls._testFileName, "rt", encoding="utf-8")
+        cls._test_file_name = os.path.join(TEST_FILE_BASE_DIR, "copyrighttest.h")
+        cls._test_file = None
+        # pylint: disable=consider-using-with
+        cls._test_file = open(cls._test_file_name, "rt", encoding="utf-8")
+        # pylint: enable=consider-using-with
 
     @classmethod
     def teardown_class(cls):
         """!
         @brief On test teardown restore the original copyright dates
         """
-        cls._testFile.close()
+        if cls._test_file is not None:
+            cls._test_file.close()
 
     def test001_constructor_with_default(self):
         """!
         @brief Test the default constructor
         """
-        test_obj = CopyrightCommentBlock(self._testFile)
+        test_obj = CopyrightCommentBlock(self._test_file)
         #self.assertIsInstance(test_obj._copyright_parser, CopyrightParseEnglish)
         assert test_obj.comment_data is None
         assert isinstance(test_obj.input_file, _io.TextIOWrapper)
@@ -93,7 +97,7 @@ class TestClass01CopyrightBlock:
         """!
         @brief Test the constructor with default copyright parser
         """
-        test_obj = CopyrightCommentBlock(self._testFile, CommentParams.pyCommentParms)
+        test_obj = CopyrightCommentBlock(self._test_file, CommentParams.pyCommentParms)
         #self.assertIsInstance(test_obj._copyright_parser, CopyrightParseEnglish)
         assert test_obj.comment_data == CommentParams.pyCommentParms
         assert isinstance(test_obj.input_file, _io.TextIOWrapper)
@@ -103,7 +107,7 @@ class TestClass01CopyrightBlock:
         """!
         @brief Test the constructor with full input
         """
-        test_obj = CopyrightCommentBlock(self._testFile, CommentParams.cCommentParms, DummyParser)
+        test_obj = CopyrightCommentBlock(self._test_file, CommentParams.cCommentParms, DummyParser)
         #self.assertIsInstance(test_obj._copyright_parser, DummyParser)
         assert test_obj.comment_data == CommentParams.cCommentParms
         assert isinstance(test_obj.input_file, _io.TextIOWrapper)
@@ -113,7 +117,7 @@ class TestClass01CopyrightBlock:
         """!
         @brief Test the _is_copyright_comment_block method, default input
         """
-        test_obj = CopyrightCommentBlock(self._testFile, CommentParams.cCommentParms)
+        test_obj = CopyrightCommentBlock(self._test_file, CommentParams.cCommentParms)
         status, text = test_obj._is_copyright_comment_block(None, None)
         assert not status
         assert text is None
@@ -122,7 +126,7 @@ class TestClass01CopyrightBlock:
         """!
         @brief Test the _is_copyright_comment_block method, incomplete input
         """
-        test_obj = CopyrightCommentBlock(self._testFile, CommentParams.cCommentParms)
+        test_obj = CopyrightCommentBlock(self._test_file, CommentParams.cCommentParms)
         status, location_dict = test_obj._is_copyright_comment_block(0, None)
         assert not status
         assert location_dict is None
@@ -135,7 +139,7 @@ class TestClass01CopyrightBlock:
         """!
         @brief Test the _is_copyright_comment_block method, good input
         """
-        test_obj = CopyrightCommentBlock(self._testFile, CommentParams.cCommentParms)
+        test_obj = CopyrightCommentBlock(self._test_file, CommentParams.cCommentParms)
         status, location_dict = test_obj._is_copyright_comment_block(0, 1082)
         assert status
         assert location_dict['lineOffset'] == 3
@@ -145,7 +149,7 @@ class TestClass01CopyrightBlock:
         """!
         @brief Test the _is_copyright_comment_block method, post block input
         """
-        test_obj = CopyrightCommentBlock(self._testFile, CommentParams.cCommentParms)
+        test_obj = CopyrightCommentBlock(self._test_file, CommentParams.cCommentParms)
         status, location_dict = test_obj._is_copyright_comment_block(1084, 1084+81)
         assert not status
         assert location_dict is None
@@ -154,8 +158,8 @@ class TestClass01CopyrightBlock:
         """!
         @brief Test the _is_find_next_copyright_block method, good find
         """
-        test_obj = CopyrightCommentBlock(self._testFile, CommentParams.cCommentParms)
-        self._testFile.seek(0)
+        test_obj = CopyrightCommentBlock(self._test_file, CommentParams.cCommentParms)
+        self._test_file.seek(0)
         status, location_dict = test_obj._is_find_next_copyright_block()
         assert status
         assert location_dict['blkStart'] == 0
@@ -169,8 +173,8 @@ class TestClass01CopyrightBlock:
         """!
         @brief Test the _is_find_next_copyright_block method, not found
         """
-        test_obj = CopyrightCommentBlock(self._testFile, CommentParams.cCommentParms)
-        self._testFile.seek(1084)
+        test_obj = CopyrightCommentBlock(self._test_file, CommentParams.cCommentParms)
+        self._test_file.seek(1084)
         status, location_dict = test_obj._is_find_next_copyright_block()
         assert not status
         assert location_dict['blkStart'] == 1186
@@ -182,7 +186,7 @@ class TestClass01CopyrightBlock:
         """!
         @brief Test the find_copyright_blocks method, found
         """
-        test_obj = CopyrightCommentBlock(self._testFile, CommentParams.cCommentParms)
+        test_obj = CopyrightCommentBlock(self._test_file, CommentParams.cCommentParms)
         location_list = test_obj.find_copyright_blocks()
         assert len(location_list) == 1
         assert location_list[0]['blkStart'] == 0
@@ -198,62 +202,59 @@ class TestClass01CopyrightBlock:
         @brief Test the find_copyright_blocks method, not found
         """
         test_filename = os.path.join(TEST_FILE_BASE_DIR, "copyrighttest_none.h")
-        testfile = open(test_filename, "rt", encoding="utf-8")
+        with open(test_filename, "rt", encoding="utf-8") as testfile:
+            test_obj = CopyrightCommentBlock(testfile, CommentParams.cCommentParms)
+            location_list = test_obj.find_copyright_blocks()
+            assert len(location_list) == 0
 
-        test_obj = CopyrightCommentBlock(testfile, CommentParams.cCommentParms)
-        location_list = test_obj.find_copyright_blocks()
-        assert len(location_list) == 0
-
-        testfile.close()
+            testfile.close()
 
     def test010_find_copyright_blocks_double_find(self):
         """!
         @brief Test the find_copyright_blocks method, double found
         """
         test_filename = os.path.join(TEST_FILE_BASE_DIR, "copyrighttest_dbl.h")
-        testfile = open(test_filename, "rt", encoding="utf-8")
+        with open(test_filename, "rt", encoding="utf-8") as testfile:
+            test_obj = CopyrightCommentBlock(testfile, CommentParams.cCommentParms)
+            location_list = test_obj.find_copyright_blocks()
+            assert len(location_list) == 1
+            assert location_list[0]['blkStart'] == 0
+            assert location_list[0]['blkEndEOL'] == 1112
+            assert location_list[0]['blkEndSOL'] == 1109
+            assert len(location_list[0]['copyrightMsgs']) == 2
+            assert location_list[0]['copyrightMsgs'][0]['lineOffset'] == 3
+            expected = " Copyright (c) 2022-2023 Randal Eike\n"
+            assert location_list[0]['copyrightMsgs'][0]['text'] == expected
+            assert location_list[0]['copyrightMsgs'][1]['lineOffset'] == 40
+            assert location_list[0]['copyrightMsgs'][1]['text'] == " Copyright (c) 2024-2025 Zeus\n"
 
-        test_obj = CopyrightCommentBlock(testfile, CommentParams.cCommentParms)
-        location_list = test_obj.find_copyright_blocks()
-        assert len(location_list) == 1
-        assert location_list[0]['blkStart'] == 0
-        assert location_list[0]['blkEndEOL'] == 1112
-        assert location_list[0]['blkEndSOL'] == 1109
-        assert len(location_list[0]['copyrightMsgs']) == 2
-        assert location_list[0]['copyrightMsgs'][0]['lineOffset'] == 3
-        expected = " Copyright (c) 2022-2023 Randal Eike\n"
-        assert location_list[0]['copyrightMsgs'][0]['text'] == expected
-        assert location_list[0]['copyrightMsgs'][1]['lineOffset'] == 40
-        assert location_list[0]['copyrightMsgs'][1]['text'] == " Copyright (c) 2024-2025 Zeus\n"
-
-        testfile.close()
+            testfile.close()
 
     def test011_find_copyright_blocks_double_blk_find(self):
         """!
         @brief Test the find_copyright_blocks method, double block found
         """
         test_filename = os.path.join(TEST_FILE_BASE_DIR, "copyrighttest_dblblk.h")
-        testfile = open(test_filename, "rt", encoding="utf-8")
+        with open(test_filename, "rt", encoding="utf-8") as testfile:
+            test_obj = CopyrightCommentBlock(testfile, CommentParams.cCommentParms)
+            location_list = test_obj.find_copyright_blocks()
+            assert len(location_list) == 2
+            assert location_list[0]['blkStart'] == 0
+            assert location_list[0]['blkEndEOL'] == 1082
+            assert location_list[0]['blkEndSOL'] == 1079
+            assert len(location_list[0]['copyrightMsgs']) == 1
+            assert location_list[0]['copyrightMsgs'][0]['lineOffset'] == 3
+            expected = " Copyright (c) 2022-2023 Randal Eike\n"
+            assert location_list[0]['copyrightMsgs'][0]['text'] == expected
 
-        test_obj = CopyrightCommentBlock(testfile, CommentParams.cCommentParms)
-        location_list = test_obj.find_copyright_blocks()
-        assert len(location_list) == 2
-        assert location_list[0]['blkStart'] == 0
-        assert location_list[0]['blkEndEOL'] == 1082
-        assert location_list[0]['blkEndSOL'] == 1079
-        assert len(location_list[0]['copyrightMsgs']) == 1
-        assert location_list[0]['copyrightMsgs'][0]['lineOffset'] == 3
-        expected = " Copyright (c) 2022-2023 Randal Eike\n"
-        assert location_list[0]['copyrightMsgs'][0]['text'] == expected
+            assert location_list[1]['blkStart'] == 1083
+            assert location_list[1]['blkEndEOL'] == 2158
+            assert location_list[1]['blkEndSOL'] == 2155
+            assert len(location_list[1]['copyrightMsgs']) == 1
+            assert location_list[1]['copyrightMsgs'][0]['lineOffset'] == 1086
+            assert location_list[1]['copyrightMsgs'][0]['text'] == " Copyright (c) 2024-2025 Odin\n"
 
-        assert location_list[1]['blkStart'] == 1083
-        assert location_list[1]['blkEndEOL'] == 2158
-        assert location_list[1]['blkEndSOL'] == 2155
-        assert len(location_list[1]['copyrightMsgs']) == 1
-        assert location_list[1]['copyrightMsgs'][0]['lineOffset'] == 1086
-        assert location_list[1]['copyrightMsgs'][0]['text'] == " Copyright (c) 2024-2025 Odin\n"
-
-        testfile.close()
+            testfile.close()
 
 
 class TestClass02CopyrightUpdate:
@@ -265,8 +266,8 @@ class TestClass02CopyrightUpdate:
         """!
         @brief On test start set the filename
         """
-        cls._testFileName = os.path.join(TEST_FILE_BASE_DIR, "copyrighttest.h")
-        _, expected = get_file_years(cls._testFileName)
+        cls._test_file_name = os.path.join(TEST_FILE_BASE_DIR, "copyrighttest.h")
+        _, expected = get_file_years(cls._test_file_name)
         copyright_gen = CopyrightParseEnglish()
         cls._yearStr = copyright_gen._build_copyright_year_string(2022, expected)
 
@@ -276,7 +277,7 @@ class TestClass02CopyrightUpdate:
         @brief On test teardown restore the original copyright dates
         """
         new_msg = "Copyright (c) "+cls._yearStr+" Randal Eike"
-        get_command_shell().stream_edit(cls._testFileName,
+        get_command_shell().stream_edit(cls._test_file_name,
                                      new_msg,
                                      "Copyright (c) 2022-2023 Randal Eike")
 
@@ -291,7 +292,7 @@ class TestClass02CopyrightUpdate:
         """!
         @brief On test teardown restore the original copyright dates
         """
-        get_command_shell().stream_edit(self._testFileName,
+        get_command_shell().stream_edit(self._test_file_name,
                                         search_str,
                                         "Copyright (c) 2022-2023 Randal Eike")
 
@@ -300,12 +301,13 @@ class TestClass02CopyrightUpdate:
         Test update_copyright_years()
         """
         def exist_return(filename):
-            if filename == self._testFileName:
-                return True
+            if filename == self._test_file_name:
+                ret_code = True
             elif filename == ".git":
-                return False
+                ret_code = False
             else:
-                return False
+                ret_code = False
+            return ret_code
 
         with patch('os.path.exists', MagicMock(side_effect = exist_return)):
             with patch('os.path.isfile', MagicMock(return_value = True)):
@@ -315,8 +317,8 @@ class TestClass02CopyrightUpdate:
                 mock_create_tm = time.mktime(mock_create_obj)
                 with patch('os.path.getctime', MagicMock(return_value = mock_create_tm)):
                     with patch('os.path.getmtime', MagicMock(return_value = local_mock_tm)):
-                        update_copyright_years(self._testFileName)
-                        grep_status, test_str = self.grep_check(self._testFileName,
+                        update_copyright_years(self._test_file_name)
+                        grep_status, test_str = self.grep_check(self._test_file_name,
                                                                 r" Copyright (c)")
                         self.reset_copyright_msg("Copyright (c) 2022-2025 Randal Eike")
                         assert grep_status
@@ -346,7 +348,10 @@ class TestClass03InsertNewCopyrightBlock:
         @brief On test start open the input file
         """
         cls._inputFileName = os.path.join(TEST_FILE_BASE_DIR, "copyrighttest.h")
+        cls._input_file = None
+        # pylint: disable=consider-using-with
         cls._input_file = open(cls._inputFileName, mode='rt', encoding='utf-8')
+        # pylint: enable=consider-using-with
 
     @classmethod
     def teardown_class(cls):

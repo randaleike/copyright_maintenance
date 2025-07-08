@@ -26,14 +26,12 @@ Unittest for copyright maintenance utility
 
 import os
 
-from dir_init import TEST_FILE_PATH
-
 from copyright_maintenance_grocsoftware.comment_block import CommentBlock
 from copyright_maintenance_grocsoftware.comment_block import TextFileCommentBlock
 from copyright_maintenance_grocsoftware.comment_block import CommentParams
 
+from tests.dir_init import TEST_FILE_PATH
 TEST_FILE_BASE_DIR = TEST_FILE_PATH
-
 
 """
 Unit test for the TextFileCommentBlock class

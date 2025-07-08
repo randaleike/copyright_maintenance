@@ -24,19 +24,20 @@ Dummy python test file
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #==========================================================================
 
+# pylint: disable=too-few-public-methods
 
 class SillyClass():
     """!
     Dummy class so I can add and find comment blocks
 
     """
-    def __init__(self, inputFile):
+    def __init__(self, input_file):
         """!
         @brief Constructor
 
         @param self(CopyrightCommentBlock) - Object reference
-        @param inputFile(file) - Open file object.
+        @param input_file(file) - Open file object.
 
         @return pass
         """
-        self._inputFile = inputFile          ##!< File to parse and look for the copyright message
+        self._input_file = input_file          ##!< File to parse and look for the copyright message

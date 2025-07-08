@@ -30,7 +30,7 @@ class TestClass01CopyrightYearParser:
     """!
     @brief Unit test for the copyright year parser
     """
-    def test001ParseSingleYear(self):
+    def test001_parse_single_year(self):
         """!
         @brief Test single year only parse
         """
@@ -46,7 +46,7 @@ class TestClass01CopyrightYearParser:
         assert year_parser.get_starting_string_index() == 1
         assert year_parser.get_ending_string_index() == 5
 
-    def test002ParseMultiYearDash(self):
+    def test002_parse_multi_year_dash(self):
         """!
         @brief Test multiple dashed year only parse
         """
@@ -62,7 +62,7 @@ class TestClass01CopyrightYearParser:
         assert year_parser.get_starting_string_index() == 1
         assert year_parser.get_ending_string_index() == 10
 
-    def test003ParseMultiYearList(self):
+    def test003_parse_multi_year_list(self):
         """!
         @brief Test multiple comma seperated year only parse
         """
@@ -78,7 +78,7 @@ class TestClass01CopyrightYearParser:
         assert year_parser.get_starting_string_index() == 1
         assert year_parser.get_ending_string_index() == 20
 
-    def test004ParseMultiYearFulldate(self):
+    def test004_parse_multi_year_fulldate(self):
         """!
         @brief Test multiple full date parse
         """
@@ -94,7 +94,7 @@ class TestClass01CopyrightYearParser:
         assert year_parser.get_starting_string_index() == 8
         assert year_parser.get_ending_string_index() == 24
 
-    def test005ParseFailure(self):
+    def test005_parse_failure(self):
         """!
         @brief Test non-date text parse
         """
@@ -111,12 +111,13 @@ class TestClass01CopyrightYearParser:
         assert year_parser.get_starting_string_index() == -1
         assert year_parser.get_ending_string_index() == -1
 
-    def test006ParseYearFromDate(self):
+    def test006_parse_year_from_date(self):
         """!
         @brief Test multiple full date parse, different formats
         """
         year_regex = re.compile(r'(\d{4})')
         year_parser = CopyrightYearsList("", year_regex)
+        # pylint: disable=protected-access
 
         assert year_parser._parse_year_from_date_str("jan-01-2022") == 2022
         assert year_parser._parse_year_from_date_str("14-mar-2023") == 2023

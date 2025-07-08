@@ -28,27 +28,13 @@ import platform
 import subprocess
 
 from unittest.mock import patch, MagicMock, mock_open
-import pytest
 
-from dir_init import TEST_FILE_PATH
 from copyright_maintenance_grocsoftware.oscmdshell import get_command_shell
 from copyright_maintenance_grocsoftware.oscmdshell import LinuxShell
 from copyright_maintenance_grocsoftware.oscmdshell import WindowsPowerShell
 
+from tests.dir_init import TEST_FILE_PATH
 TEST_FILE_BASE_DIR = TEST_FILE_PATH
-OUTFILENAME = "streamedit.out"
-
-@pytest.fixture
-def output_file_sim():
-    """!
-    @brief Output file simulator for test that require an output file
-    """
-    fake_output_file = MagicMock()
-    with patch("builtins.open", return_value = fake_output_file, create=True) as mock_file:
-        yield fake_output_file, mock_file
-
-        mock_file.assert_called_once_with(OUTFILENAME, 'wt', encoding='utf-8')
-        fake_output_file.close.assert_called_once()
 
 def test01_get_linux_shell():
     """!
@@ -92,14 +78,20 @@ def test04_get_shell_real_call(capsys):
         expected = capsys.readouterr().out
         assert expected == "ERROR: Unsupported OS "+os_type
 
-def test05_linux_shell_stream_edit_pass(output_file_sim):
+def test05_linux_shell_stream_edit_pass():
     """!
     @brief Test shell.stream_edit(), good case
     """
-    ret_code_pass = subprocess.CompletedProcess("", 0, "", "")
-    with patch('subprocess.run', MagicMock(return_value = ret_code_pass)):
-        shell = LinuxShell()
-        assert shell.stream_edit("testfile.in", "2022-2024", "2022-2025", OUTFILENAME)
+    fake_output_file = MagicMock()
+    with patch("builtins.open", return_value = fake_output_file, create=True) as mock_file:
+
+        ret_code_pass = subprocess.CompletedProcess("", 0, "", "")
+        with patch('subprocess.run', MagicMock(return_value = ret_code_pass)):
+            shell = LinuxShell()
+            assert shell.stream_edit("testfile.in", "2022-2024", "2022-2025", "streamedit.out")
+
+        mock_file.assert_called_once_with("streamedit.out", 'wt', encoding='utf-8')
+        fake_output_file.close.assert_called_once()
 
 def test06_linux_shell_stream_edit_inline_pass():
     """!
@@ -156,7 +148,7 @@ def test09_linux_shell_stream_edit_timeout_error(capsys):
         expected = capsys.readouterr().out
         assert expected == "ERROR: Stream edit 'testfile.in' timeout failure.\n"
 
-def test10_linux_shell_stream_edit_inline_error_with_output_file(output_file_sim, capsys):
+def test10_linux_shell_stream_edit_inline_error_with_output_file(capsys):
     """!
     @brief Test shell.stream_edit(), output file open failure
     """
@@ -164,18 +156,26 @@ def test10_linux_shell_stream_edit_inline_error_with_output_file(output_file_sim
     output_msg = ""
     command_msg = "['sed', '-i', 's/2022-2024/2022-2025/g', 'testfile.in']"
 
-    ret_code_error = subprocess.CompletedProcess(command_msg, 2, output_msg, error_msg)
-    with patch('subprocess.run', MagicMock(return_value = ret_code_error)) as subproc:
-        subproc.side_effect = subprocess.CalledProcessError(2, command_msg, output_msg, error_msg)
-        shell = LinuxShell()
+    fake_output_file = MagicMock()
+    with patch("builtins.open", return_value = fake_output_file, create=True) as mock_file:
+        ret_code_error = subprocess.CompletedProcess(command_msg, 2, output_msg, error_msg)
+        with patch('subprocess.run', MagicMock(return_value = ret_code_error)) as subproc:
+            subproc.side_effect = subprocess.CalledProcessError(2, command_msg,
+                                                                output_msg, error_msg)
+            shell = LinuxShell()
 
-        assert not shell.stream_edit("testfile_path", "2022-2024", "2022-2025", OUTFILENAME)
+            assert not shell.stream_edit("testfile_path", "2022-2024",
+                                         "2022-2025", "streamedit.out")
 
-        msgout = capsys.readouterr()
-        assert msgout.out == "ERROR: Stream edit 'testfile_path' replace '2022-2024' " \
-                             "with '2022-2025' failed.\n"
+            msgout = capsys.readouterr()
+            assert msgout.out == "ERROR: Stream edit 'testfile_path' replace '2022-2024' " \
+                                 "with '2022-2025' failed.\n"
 
-def test11_linux_shell_stream_edit_timeout_error_with_output_file(output_file_sim, capsys):
+        mock_file.assert_called_once_with("streamedit.out", 'wt', encoding='utf-8')
+        fake_output_file.close.assert_called_once()
+
+
+def test11_linux_shell_stream_edit_timeout_error_with_output_file(capsys):
     """!
     @brief Test shell.stream_edit(), process timeout
     """
@@ -183,13 +183,18 @@ def test11_linux_shell_stream_edit_timeout_error_with_output_file(output_file_si
     output_msg = ""
     command_msg = "['sed', '-i', 's/2022-2024/2022-2025/g', 'testfile.in']"
 
-    ret_code_error = subprocess.CompletedProcess(command_msg, 2, output_msg, error_msg)
-    with patch('subprocess.run', MagicMock(return_value = ret_code_error)) as subproc:
-        subproc.side_effect = TimeoutError
-        shell = LinuxShell()
-        assert not shell.stream_edit("testfile.in", "2022-2024", "2022-2025", OUTFILENAME)
-        expected = capsys.readouterr().out
-        assert expected == "ERROR: Stream edit 'testfile.in' timeout failure.\n"
+    fake_output_file = MagicMock()
+    with patch("builtins.open", return_value = fake_output_file, create=True) as mock_file:
+        ret_code_error = subprocess.CompletedProcess(command_msg, 2, output_msg, error_msg)
+        with patch('subprocess.run', MagicMock(return_value = ret_code_error)) as subproc:
+            subproc.side_effect = TimeoutError
+            shell = LinuxShell()
+            assert not shell.stream_edit("testfile.in", "2022-2024", "2022-2025", "streamedit.out")
+            expected = capsys.readouterr().out
+            assert expected == "ERROR: Stream edit 'testfile.in' timeout failure.\n"
+
+        mock_file.assert_called_once_with("streamedit.out", 'wt', encoding='utf-8')
+        fake_output_file.close.assert_called_once()
 
 def test12_linux_shell_search_file():
     """!
@@ -244,7 +249,7 @@ def test15_windows9_shell_stream_edit_pass():
         with patch('platform.release', MagicMock(return_value = 9)):
             shell = WindowsPowerShell()
             assert shell.stream_edit("testfile.in", "2022-2024",
-                                     "2022-2025", OUTFILENAME)
+                                     "2022-2025", "streamedit.out")
 
 def test16_windows9_shell_stream_edit_inline_pass():
     """!
@@ -308,7 +313,7 @@ def test19_windows9_shell_stream_edit_inline_error_with_output_file(capsys):
         with patch('platform.release', MagicMock(return_value = 9)):
             shell = WindowsPowerShell()
             assert not shell.stream_edit("testfile_path", "2022-2024",
-                                        "2022-2025", OUTFILENAME)
+                                        "2022-2025", "streamedit.out")
             expected = capsys.readouterr().out
             assert expected == "ERROR: Stream edit 'testfile_path' replace '2022-2024' " \
                                "with '2022-2025' failed.\n"
@@ -392,7 +397,7 @@ def test24_windows11_shell_stream_edit_pass():
         with patch('platform.release', MagicMock(return_value = 11)):
             shell = WindowsPowerShell()
             assert shell.stream_edit("testfile.in", "2022-2024",
-                                      "2022-2025", OUTFILENAME)
+                                      "2022-2025", "streamedit.out")
 
 def test25_windows11_shell_stream_edit_inline_pass():
     """!
@@ -455,7 +460,8 @@ def test28_windows11_shell_stream_edit_inline_error_with_output_file(capsys):
         subproc.side_effect = subprocess.CalledProcessError(2, command_msg, output_msg, error_msg)
         with patch('platform.release', MagicMock(return_value = 11)):
             shell = WindowsPowerShell()
-            assert not shell.stream_edit("testfile_path", "2022-2024", "2022-2025", OUTFILENAME)
+            assert not shell.stream_edit("testfile_path", "2022-2024",
+                                         "2022-2025", "streamedit.out")
             expected = capsys.readouterr().out
             assert expected == "ERROR: Stream edit 'testfile_path' replace '2022-2024' " \
                                "with '2022-2025' failed.\n"
@@ -474,7 +480,7 @@ def test29_windows11_shell_stream_edit_inline_timeout_error_with_output_file(cap
         subproc.side_effect = TimeoutError
         with patch('platform.release', MagicMock(return_value = 11)):
             shell = WindowsPowerShell()
-            assert not shell.stream_edit("testfile.in", "2022-2024", "2022-2025", OUTFILENAME)
+            assert not shell.stream_edit("testfile.in", "2022-2024", "2022-2025", "streamedit.out")
             expected = capsys.readouterr().out
             assert expected == "ERROR: Stream edit 'testfile.in' timeout failure.\n"
 

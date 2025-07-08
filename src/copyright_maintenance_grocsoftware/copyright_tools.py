@@ -98,8 +98,7 @@ class CopyrightYearsList():
 
             if self._start == -1:
                 self._start = year_match.start() + base_index
-            if (year_match.end() + base_index) > self._end:
-                self._end = year_match.end() + base_index
+            self._end = max(year_match.end() + base_index, self._end)
 
     def _parse_year_from_date_str(self, year_str:str)->int:
         """!

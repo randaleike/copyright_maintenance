@@ -25,12 +25,11 @@ Unittest for copyright maintenance utility
 
 import os
 
-from dir_init import TEST_FILE_PATH
-
 from copyright_maintenance_grocsoftware.copyright_tools import CopyrightParseEnglish
 from copyright_maintenance_grocsoftware.copyright_generator import CopyrightGenerator
 from copyright_maintenance_grocsoftware.copyright_finder import CopyrightFinder
 
+from tests.dir_init import TEST_FILE_PATH
 TEST_FILE_BASE_DIR = TEST_FILE_PATH
 
 # pylint: disable=protected-access

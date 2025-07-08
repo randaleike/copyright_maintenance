@@ -28,7 +28,7 @@ import time
 import subprocess
 from unittest.mock import patch, MagicMock
 
-from dir_init import TEST_FILE_PATH
+from tests.dir_init import TEST_FILE_PATH
 
 from copyright_maintenance_grocsoftware.file_dates import DBG_MSG_NONE
 from copyright_maintenance_grocsoftware.file_dates import DBG_MSG_MINIMAL
@@ -207,6 +207,8 @@ def test014_get_years_pass():
     Test get_file_years(), Git pass
     """
     # pylint: disable=unused-argument
+    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-locals
     def mockrun(args, *, stdin=None,
                     inputstd=None, stdout=None,
                     stderr=None, capture_output=False,
@@ -222,22 +224,26 @@ def test014_get_years_pass():
             git_cmd += prefix
             git_cmd += element
             prefix = " "
+
+        ret_code = None
         if args[2] == "-1":
-            return subprocess.CompletedProcess(git_cmd,
+            ret_code = subprocess.CompletedProcess(git_cmd,
                                                0,
                                                "2024-01-01T12:00:00-06:00".encode('utf-8'),
                                                "")
         elif args[2] == "--diff-filter=A":
-            return subprocess.CompletedProcess(git_cmd,
+            ret_code = subprocess.CompletedProcess(git_cmd,
                                                0,
                                                "2023-01-01T12:00:00-06:00".encode('utf-8'),
                                                "")
         else:
-            return subprocess.CompletedProcess(git_cmd,
+            ret_code = subprocess.CompletedProcess(git_cmd,
                                                2,
                                                "Git error".encode('utf-8'),
                                                "")
+        return ret_code
     # pylint: enable=unused-argument
+    # pylint: enable=too-many-arguments
 
     with patch('subprocess.run', MagicMock(side_effect = mockrun)):
         test_obj = GetGitArchiveFileYears("testfile")
@@ -245,11 +251,15 @@ def test014_get_years_pass():
         assert startyear == '2023'
         assert modify_year == '2024'
 
+    # pylint: enable=too-many-locals
+
 def test015_get_years_start_fail(capsys):
     """!
     Test get_file_years(), Git pass
     """
     # pylint: disable=unused-argument
+    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-locals
     def mockrun(args, *, stdin=None,
                     inputstd=None, stdout=None,
                     stderr=None, capture_output=False,
@@ -265,22 +275,26 @@ def test015_get_years_start_fail(capsys):
             git_cmd += prefix
             git_cmd += element
             prefix = " "
+
+        ret_code = None
         if args[2] == "-1":
-            return subprocess.CompletedProcess(git_cmd,
+            ret_code = subprocess.CompletedProcess(git_cmd,
                                                0,
                                                "2024-01-01T12:00:00-06:00".encode('utf-8'),
                                                "")
         elif args[2] == "--diff-filter=A":
-            return subprocess.CompletedProcess(git_cmd,
+            ret_code = subprocess.CompletedProcess(git_cmd,
                                                2,
                                                "git error msg".encode('utf-8'),
                                                "")
         else:
-            return subprocess.CompletedProcess(git_cmd,
+            ret_code = subprocess.CompletedProcess(git_cmd,
                                                4,
                                                "Git error".encode('utf-8'),
                                                "")
+        return ret_code
     # pylint: enable=unused-argument
+    # pylint: enable=too-many-arguments
 
     with patch('subprocess.run', MagicMock(side_effect = mockrun)):
         test_obj = GetGitArchiveFileYears("testfile")
@@ -288,12 +302,15 @@ def test015_get_years_start_fail(capsys):
         assert startyear is None
         assert modify_year is None
         assert capsys.readouterr().out == "ERROR: Git creation date failed: git error msg\n"
+    # pylint: enable=too-many-locals
 
 def test016_get_years_las_mod_fail(capsys):
     """!
     Test get_file_years(), Git pass
     """
     # pylint: disable=unused-argument
+    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-locals
     def mockrun(args, *, stdin=None,
                     inputstd=None, stdout=None,
                     stderr=None, capture_output=False,
@@ -309,22 +326,25 @@ def test016_get_years_las_mod_fail(capsys):
             git_cmd += prefix
             git_cmd += element
             prefix = " "
+
         if args[2] == "-1":
-            return subprocess.CompletedProcess(git_cmd,
+            ret_code = subprocess.CompletedProcess(git_cmd,
                                                2,
                                                "git error msg".encode('utf-8'),
                                                "")
         elif args[2] == "--diff-filter=A":
-            return subprocess.CompletedProcess(git_cmd,
+            ret_code = subprocess.CompletedProcess(git_cmd,
                                                0,
                                                "2024-01-01T12:00:00-06:00".encode('utf-8'),
                                                "")
         else:
-            return subprocess.CompletedProcess(git_cmd,
+            ret_code = subprocess.CompletedProcess(git_cmd,
                                                4,
                                                "Git error".encode('utf-8'),
                                                "")
+        return ret_code
     # pylint: enable=unused-argument
+    # pylint: enable=too-many-arguments
 
     with patch('subprocess.run', MagicMock(side_effect = mockrun)):
         test_obj = GetGitArchiveFileYears("testfile")
@@ -333,20 +353,24 @@ def test016_get_years_las_mod_fail(capsys):
         assert modify_year is None
         expected = capsys.readouterr().out
         assert expected == "ERROR: Git last modification date failed: git error msg\n"
+    # pylint: enable=too-many-locals
 
 def test017_get_year_git():
     """!
     Test GIT get_file_years() method
     """
+    # pylint: disable=too-many-locals
     def exist_return(filename):
         if filename == "testfile":
-            return True
+            ret_code = True
         elif filename == ".git":
-            return True
+            ret_code = True
         else:
-            return False
+            ret_code = False
+        return ret_code
 
     # pylint: disable=unused-argument
+    # pylint: disable=too-many-arguments
     def mockrun(args, *, stdin=None,
                     inputstd=None, stdout=None,
                     stderr=None, capture_output=False,
@@ -363,21 +387,23 @@ def test017_get_year_git():
             git_cmd += element
             prefix = " "
         if args[2] == "-1":
-            return subprocess.CompletedProcess(git_cmd,
+            ret_code = subprocess.CompletedProcess(git_cmd,
                                                0,
                                                "2025-01-01T12:00:00-06:00".encode('utf-8'),
                                                "")
         elif args[2] == "--diff-filter=A":
-            return subprocess.CompletedProcess(git_cmd,
+            ret_code = subprocess.CompletedProcess(git_cmd,
                                                0,
                                                "2022-01-01T12:00:00-06:00".encode('utf-8'),
                                                "")
         else:
-            return subprocess.CompletedProcess(git_cmd,
+            ret_code = subprocess.CompletedProcess(git_cmd,
                                                4,
                                                "Git error".encode('utf-8'),
                                                "")
+        return ret_code
     # pylint: enable=unused-argument
+    # pylint: enable=too-many-arguments
 
     with patch('os.path.exists', MagicMock(side_effect = exist_return)):
         with patch('os.path.isfile', MagicMock(return_value = True)):
@@ -386,6 +412,7 @@ def test017_get_year_git():
                     startyear, modify_year = get_file_years("testfile")
                     assert startyear == '2022'
                     assert modify_year == '2025'
+    # pylint: enable=too-many-locals
 
 def test018_get_year_file_system():
     """!
@@ -393,11 +420,12 @@ def test018_get_year_file_system():
     """
     def exist_return(filename):
         if filename == "testfile":
-            return True
+            ret_code = True
         elif filename == ".git":
-            return False
+            ret_code = False
         else:
-            return False
+            ret_code = False
+        return ret_code
 
     with patch('os.path.exists', MagicMock(side_effect = exist_return)):
         with patch('os.path.isfile', MagicMock(return_value = True)):
@@ -415,11 +443,12 @@ def test019_get_year_file_system_git_not_dir():
     """
     def exist_return(filename):
         if filename == "testfile":
-            return True
+            ret_code = True
         elif filename == ".git":
-            return True
+            ret_code = True
         else:
-            return False
+            ret_code = False
+        return ret_code
 
     with patch('os.path.exists', MagicMock(side_effect = exist_return)):
         with patch('os.path.isfile', MagicMock(return_value = True)):
@@ -438,11 +467,12 @@ def test020_get_years_fail_no_file(capsys):
     """
     def exist_return(filename):
         if filename == "testfile":
-            return False
+            ret_code = False
         elif filename == ".git":
-            return True
+            ret_code = True
         else:
-            return False
+            ret_code = False
+        return ret_code
 
     with patch('os.path.exists', MagicMock(side_effect = exist_return)):
         with patch('os.path.isfile', MagicMock(return_value = True)):
@@ -459,11 +489,12 @@ def test021_get_years_fail_not_file(capsys):
     """
     def exist_return(filename):
         if filename == "testfile":
-            return True
+            ret_code = True
         elif filename == ".git":
-            return True
+            ret_code = True
         else:
-            return False
+            ret_code = False
+        return ret_code
 
     with patch('os.path.exists', MagicMock(side_effect = exist_return)):
         with patch('os.path.isfile', MagicMock(return_value = False)):
