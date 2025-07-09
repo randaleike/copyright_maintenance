@@ -32,14 +32,14 @@ class LinuxShell:
     @brief Linux shell version
     """
     def stream_edit(self, input_file_name:str, searchregx:str,
-                    replaceregx:str, output_file_name:str|None = None)->bool:
+                    replaceregx:str, output_file_name:str = None)->bool:
         """!
         @brief Inline stream editor function
 
         @param input_file_name (string): file_path and name of the input file
         @param searchregx (regx string): Regx string describing the string to search for
         @param replaceregx (regex string): Regx string describing the replacement string
-        @param output_file_name (string|None): file_path and name of the output file or None to
+        @param output_file_name (string): file_path and name of the output file or None to
                                         force inline change
 
         @return bool - True if replacement was successful, False if there was an error
@@ -126,7 +126,7 @@ class WindowsPowerShell:
         self._windows_version = platform.release()
 
     def stream_edit(self, input_file_name:str, searchregx:str, replaceregx:str,
-                    output_file_name:str|None = None)->bool:
+                    output_file_name:str = None)->bool:
         """!
         @brief Inline stream editor function
 
@@ -214,7 +214,7 @@ class WindowsPowerShell:
             print("ERROR: File text search '"+input_file_name+"' timeout failure.")
             return False, None
 
-def get_command_shell()->LinuxShell|WindowsPowerShell|None:
+def get_command_shell():
     """!
     @brief Get the os specific shell object
 

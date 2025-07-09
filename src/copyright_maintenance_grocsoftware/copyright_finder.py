@@ -46,7 +46,7 @@ class CopyrightFinder():
             self._parser = CopyrightParseEnglish()
 
     def find_next_copyright_msg(self, input_file, start_offset:int,
-                                end_offset:int|None = None)->tuple:
+                                end_offset:int = None)->tuple:
         """!
         @brief Scan the current file from the start_offset location to find the next copyright
                message

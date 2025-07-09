@@ -42,7 +42,7 @@ class CopyrightCommentBlock(CommentBlock):
     copyright message is in the block(s)
     """
     def __init__(self, input_file,
-                 comment_markers:dict|None = None,
+                 comment_markers:dict = None,
                  copyright_parser = None):
         """!
         @brief Constructor
@@ -68,8 +68,8 @@ class CopyrightCommentBlock(CommentBlock):
         ## List of copyright comment block dictionary entries found
         self._copyright_block_data = []
 
-    def _is_copyright_comment_block(self, comment_blk_strt_off:int|None,
-                                    comment_blk_end_off:int|None)->tuple:
+    def _is_copyright_comment_block(self, comment_blk_strt_off:int,
+                                    comment_blk_end_off:int)->tuple:
         """!
         @brief Check if the copyright message is within the current comment block
 
@@ -161,7 +161,7 @@ class CopyrightCommentBlock(CommentBlock):
 
 def insert_new_copyright_block(input_file, output_filename:str, comment_block_data:dict,
                                comment_marker:dict, new_copyright_msg:str,
-                               new_eula:list|None = None)->bool: # pylint: disable=too-many-arguments
+                               new_eula:list = None)->bool: # pylint: disable=too-many-arguments
     """!
     @brief Write a new file with the updated copyright message
 

@@ -44,7 +44,7 @@ class CopyrightGenerator():
             self.parser = CopyrightParseEnglish()
 
     @staticmethod
-    def _is_multi_year(create_year:int, last_modify_year:int|None)->bool:
+    def _is_multi_year(create_year:int, last_modify_year:int=None)->bool:
         """!
         Determine if this is a multi or single year message
 
@@ -58,7 +58,7 @@ class CopyrightGenerator():
             result = bool(last_modify_year != create_year)
         return result
 
-    def _get_new_copyright_msg(self, create_year:int, last_modify_year:int|None = None)->tuple:
+    def _get_new_copyright_msg(self, create_year:int, last_modify_year:int = None)->tuple:
         """
         @brief Determine if a new copyright message is required and return if message changed
                and the new copyright message
@@ -119,7 +119,7 @@ class CopyrightGenerator():
 
         return msg_changed, new_copyright_msg
 
-    def _get_default_copyright_msg(self, create_year:int, last_modify_year:int|None = None)->tuple:
+    def _get_default_copyright_msg(self, create_year:int, last_modify_year:int = None)->tuple:
         """!
         @brief Generate a new multiyear copyright message using default values
 
@@ -132,7 +132,7 @@ class CopyrightGenerator():
         new_copyright_msg =  self.parser.create_copyright_msg("None", create_year, last_modify_year)
         return True, new_copyright_msg
 
-    def get_new_copyright_msg(self, create_year:int, last_modify_year:int|None = None)->tuple:
+    def get_new_copyright_msg(self, create_year:int, last_modify_year:int = None)->tuple:
         """!
         @brief Determine if a new copyright message is required and return if message changed
                and the new copyright message
@@ -171,7 +171,7 @@ class CopyrightGenerator():
                                                                 True)
         return msg_changed, original_copyright, new_copyright_msg
 
-    def add_copyright_owner(self, create_year:int, last_modify_year:int, new_owner:str)->tuple|None:
+    def add_copyright_owner(self, create_year:int, last_modify_year:int, new_owner:str)->tuple:
         """!
         @brief Modify the old copyright message to end with the transition year input and
                create a new copyright message with the transition year and new owner
@@ -193,8 +193,7 @@ class CopyrightGenerator():
             return_data = new_copyright_msg
         return return_status, return_data
 
-    def create_new_copyright(self, owner:str, create_year:int,
-                             last_modify_year:int|None = None)->str:
+    def create_new_copyright(self, owner:str, create_year:int, last_modify_year:int = None)->str:
         """!
         @brief Create a new copyright message from scratch
 

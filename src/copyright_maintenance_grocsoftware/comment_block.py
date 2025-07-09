@@ -165,7 +165,7 @@ class CommentParams(): # pylint: disable=too-few-public-methods
                          }
 
     @staticmethod
-    def get_comment_markers(filename:str)->dict|None:
+    def get_comment_markers(filename:str)->dict:
         """!
         @brief Determine the comment marker values from the file name
 
@@ -188,7 +188,7 @@ class CommentBlock():
     """!
     Identify the start and end of a comment block
     """
-    def __init__(self, input_file, comment_markers:dict|None = None):
+    def __init__(self, input_file, comment_markers:dict = None):
         """!
         @brief Constructor
         @param input_file (file): Open file object to read and identify the copyright block in.

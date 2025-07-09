@@ -13,7 +13,7 @@ description = "Copyright year maintenance tool for C/CPP/Python/Typescript files
 readme = {file = "README.md", content-type = "text/markdown"}
 license = "MIT"
 keywords = ["copyright", "maintenance", "tool", "utilities", "C", "CPP", "Python", "Typescript", "files", "developer"]
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",

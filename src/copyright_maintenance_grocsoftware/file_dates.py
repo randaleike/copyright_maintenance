@@ -58,11 +58,11 @@ class GetFileSystemYears():
         """
         self._file_path = file_path
 
-    def cvt_timestamp_to_year(self, seconds:float) -> str|None:
+    def cvt_timestamp_to_year(self, seconds:float) -> str:
         """!
         @brief Convert the input seconds timestamp to the year value
         @param seconds (float) Number of seconds since 01-Jan-1970
-        @return str|None - Year value string corresponding to the input seconds or
+        @return str - Year value string corresponding to the input seconds or
                            None if there was a conversion error
         """
         try:
@@ -105,10 +105,10 @@ class GetGitArchiveFileYears():
         ## Path/file name of the file to process
         self._file_path = file_path
 
-    def get_creation_year(self)->str|None:
+    def get_creation_year(self)->str:
         """!
         @brief Get the file creation year from the git archive
-        @return str|None - creation year string or None if the git call failed
+        @return str - creation year string or None if the git call failed
         """
 
         # Get the date file was added to the archive
@@ -129,10 +129,10 @@ class GetGitArchiveFileYears():
             print("ERROR: Git creation date command failed for file: "+self._file_path)
             return None
 
-    def get_last_modification_year(self)->str|None:
+    def get_last_modification_year(self)->str:
         """!
         @brief Get the file last modification year from the git archive
-        @return str|None - last modification year string or None if the git call failed
+        @return str - last modification year string or None if the git call failed
         """
 
         # Get the date file was last modified in the archive
