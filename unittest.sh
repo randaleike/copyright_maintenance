@@ -1,2 +1,4 @@
 #!/bin/bash
-pytest %1
+clear
+coverage run -m pytest -s
+coverage report --fail-under=98
