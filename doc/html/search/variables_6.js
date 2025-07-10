@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['shcommentparms_0',['shCommentParms',['../classcopyright__maintenance__grocsoftware_1_1comment__block_1_1CommentParams.html#a6cf5f5507a5b4350d7d9b833e35f4cb7',1,'copyright_maintenance_grocsoftware::comment_block::CommentParams']]],
-  ['start_1',['start',['../classcopyright__maintenance__grocsoftware_1_1copyright__tools_1_1SubTextMarker.html#a93573e11c227ae36a793553e373f77d0',1,'copyright_maintenance_grocsoftware::copyright_tools::SubTextMarker']]]
+  ['parser_0',['parser',['../classcopyright__maintenance__grocsoftware_1_1copyright__generator_1_1CopyrightGenerator.html#a321a0c26ddc10802d922a539396d937f',1,'copyright_maintenance_grocsoftware::copyright_generator::CopyrightGenerator']]],
+  ['pycommentparms_1',['pyCommentParms',['../classcopyright__maintenance__grocsoftware_1_1comment__block_1_1CommentParams.html#a7f33d09e00ca67ef1e9d222aecc6fbee',1,'copyright_maintenance_grocsoftware::comment_block::CommentParams']]]
 ];

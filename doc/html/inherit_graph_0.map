@@ -1,3 +1,5 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$classcopyright__maintenance__grocsoftware_1_1oscmdshell_1_1LinuxShell.html" title="Linux shell version." alt="" coords="5,5,236,60"/>
+<area shape="rect" id="Node000000" href="$classcopyright__maintenance__grocsoftware_1_1comment__block_1_1CommentBlock.html" title="Identify the start and end of a comment block." alt="" coords="5,5,184,60"/>
+<area shape="rect" id="Node000001" href="$classcopyright__maintenance__grocsoftware_1_1update__copyright_1_1CopyrightCommentBlock.html" title="Identify the start and end of a comment blocks and determine if the copyright message is in the block..." alt="" coords="232,5,489,60"/>
+<area shape="poly" id="edge1_Node000000_Node000001" title=" " alt="" coords="198,30,232,30,232,35,198,35"/>
 </map>
